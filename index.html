@@ -667,27 +667,28 @@ async function removeCat(idx) {
     renderAll();
     if(firestore && currentRoom) {
         try {
-            await firestore.collection('rooms').doc(currentRoom).collection('meta').doc('categories').set({ list: DB.categories });
-        } catch(e) {
-            DB.categories = oldCats;
-            saveLocal();
-            renderAll();
-            showToast('❌ ลบหมวดไม่สำเร็จ');
-        }
-    }
+          function applyIgTemplate() {
+    let brand = document.getElementById('igBrand').value.trim();
+    let size = document.getElementById('igSize').value.trim();
+    let chest = document.getElementById('igChest').value.trim();
+    let length = document.getElementById('igLength').value.trim();
+    let condition = document.getElementById('igCondition').value.trim();
+    let flaws = document.getElementById('igFlaws').value.trim();
+    let price = document.getElementById('igPrice').value.trim();
+
+    // สร้างข้อความโดยไม่ต้องใช้ {} เลย
+    let content = "";
+    if (brand) content += `แบรนด์ ${brand}\n`;
+    if (size) content += `Size : ${size}\n`;
+    if (chest) content += `อก : ${chest} ซม.\n`;
+    if (length) content += `ยาว : ${length} ซม.\n`;
+    if (condition) content += `สภาพ : ${condition}\n`;
+    if (flaws) content += `ตำหนิ : ${flaws}\n`;
+    if (price) content += `Price : ${price} บาท\n`;
+    content += `อ่านรายละเอียดให้มั่นใจก่อนตัดสินใจพิมพ์รับ\nสินค้าทำความสะอาดแล้วคับแต่แนะนำให้ซักอีกรอบ\nสนใจสินค้าเม้นใต้โพสต์ หรือ DMมาสอบถามได้\nดีเทลอาจจะคลาดเคลื่อน 0.5+`;
+    
+    document.getElementById('igContent').value = content;
 }
-async function addIgPost() {
-    let title = document.getElementById('igTitle').value.trim();
-    let content = document.getElementById('igContent').value.trim();
-    if(!content) { alert('กรุณาสร้างข้อความโพสต์ก่อน'); return; }
-    let newPost = { id: Date.now().toString(), title: title||'โพสต์', content, status: 'pending', date: new Date().toISOString() };
-    DB.igPosts.push(newPost);
-    saveLocal();
-    renderAll();
-    if(firestore && currentRoom) {
-        try {
-            await firestore.collection('rooms').doc(currentRoom).collection('igPosts').doc(newPost.id).set(newPost);
-        } catch(e) { showToast('⚠️ บันทึกโพสต์ลงคลาวด์ไม่สำเร็จ'); }
     }
     document.getElementById('igTitle').value='';
     document.getElementById('igContent').value='';
