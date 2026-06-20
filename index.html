@@ -656,7 +656,7 @@
         <div class="logo"><span class="hype">HYPE</span><span class="hunt">HUNT</span></div>
         <div class="topbar-right">
             <span id="onlineStatus" style="font-size:12px;"><span class="online-dot"></span>Online</span>
-            <div class="ver-badge">v22 🔥 Firebase Ready</div>
+            <div class="ver-badge">v24 🔥 Gumloop Ready</div>
             <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button>
         </div>
     </div>
@@ -703,6 +703,17 @@
             <div class="form-row"><input id="sellQty" type="number" value="1" oninput="previewProfit()"><input id="sellPrice" type="number" placeholder="ราคา/ตัว" oninput="previewProfit()"></div>
             <div class="form-row"><input id="customerName" placeholder="ชื่อลูกค้า"><input id="customerContact" placeholder="@line / IG"></div>
             <div style="margin-bottom:10px;"><input id="extraDetails" placeholder="ไซส์ / แบรนด์ / สภาพ"></div>
+            <div class="form-row" style="margin-bottom:10px;">
+                <select id="paymentStatus" onchange="togglePaymentInputs()">
+                    <option value="paid">✅ จ่ายเต็ม</option>
+                    <option value="deposit">💰 มัดจำ</option>
+                    <option value="hold">⏳ จองสินค้า</option>
+                </select>
+                <div id="paymentInputsWrapper" style="display:flex; gap:8px; width:100%;">
+                    <input id="depositAmount" type="number" placeholder="เงินมัดจำ (฿)" style="display:none;" oninput="previewProfit()">
+                    <input id="paymentDueDate" type="date" placeholder="วันครบกำหนดชำระ" style="display:none;">
+                </div>
+            </div>
             <div id="sellCostPreview"></div><div id="profitPreview"></div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
                 <button class="btn btn-primary" onclick="addSale()">✅ บันทึกการขาย</button>
@@ -729,6 +740,11 @@
     <div id="igposts" class="section">
         <div class="card">
             <h3>✏️ สร้างโพสต์ IG <span class="street-tag">inch</span></h3>
+            <div style="margin-bottom:12px;">
+                <label>📦 เลือกล็อตของสินค้า (เพื่อช่วยแนะนำราคา):</label>
+                <select id="igLot" onchange="updateIgPriceSuggestion()"></select>
+                <div id="igCostPreview" style="margin-top:6px;"></div>
+            </div>
             <div class="ig-field-grid">
                 <input id="igBrand" placeholder="แบรนด์">
                 <input id="igSize" placeholder="Size">
@@ -737,13 +753,16 @@
                 <input id="igCondition" placeholder="สภาพ เช่น 90%">
                 <input id="igFlaws" placeholder="ตำหนิ (ถ้ามี)">
                 <input id="igPrice" type="number" placeholder="Price (บาท)">
+                <input id="igImgUrl" placeholder="ลิงก์รูปภาพสินค้า (Image URL)">
             </div>
             <div style="margin-top:10px;">
                 <label>📝 เทมเพลต (แก้ไขได้ — ใช้ {แบรนด์} {Size} {อก} {ยาว} {สภาพ} {ตำหนิ} {Price})</label>
-                <textarea id="igTemplate" rows="6">แบรนด์ {แบรนด์}
+                <textarea id="igTemplate" rows="8">แบรนด์ {แบรนด์}
 Size : {Size}
 อก : {อก} นิ้ว
 ยาว : {ยาว} นิ้ว
+ทรงใส่ : {ทรงเสื้อ}
+ความสูงแนะนำ : {ส่วนสูงที่แนะนำ}
 สภาพ : {สภาพ}
 ตำหนิ : {ตำหนิ}
 Price : {Price} บาท
@@ -790,6 +809,25 @@ Price : {Price} บาท
                 <button class="btn btn-sm btn-ghost" onclick="testWebhook()">🧪 ทดสอบ</button>
             </div>
         </div>
+        <!-- ===== ส่วนตั้งค่า Gumloop (เพิ่มใหม่) ===== -->
+        <div class="card">
+            <h3>🔗 Gumloop Integration</h3>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">
+                ตั้งค่า Webhook เพื่อส่งข้อมูลการขายและล็อตไปยัง Gumloop โดยอัตโนมัติ
+            </p>
+            <div class="form-row">
+                <input type="text" id="gumloopUserId" placeholder="User ID (จากปุ่ม Webhooks ใน Gumloop)">
+                <input type="text" id="gumloopSavedItemId" placeholder="Saved Item ID (จากปุ่ม Webhooks)">
+            </div>
+            <div style="margin-bottom: 10px;">
+                <input type="password" id="gumloopApiKey" placeholder="API Key (สร้างจากหน้า Credentials)" style="width:100%;">
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button class="btn btn-sm btn-primary" onclick="saveGumloopSettings()">💾 บันทึก Gumloop</button>
+                <button class="btn btn-sm btn-ghost" onclick="testGumloopConnection()">🧪 ทดสอบเชื่อมต่อ</button>
+            </div>
+            <div id="gumloopTestResult" class="info-box" style="margin-top:10px; display:none;"></div>
+        </div>
         <div class="card">
             <h3>🏷️ หมวดเสื้อ</h3>
             <div id="catManage"></div>
@@ -804,6 +842,15 @@ Price : {Price} บาท
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
                 <button class="btn btn-ghost" onclick="exportCloudData()">📥 Export JSON</button>
                 <button class="btn btn-ghost" onclick="exportCSV()">📊 Export CSV</button>
+            </div>
+        </div>
+        <div class="card">
+            <h3>🔗 หน้าร้านค้าออนไลน์ (Link-in-Bio Shop)</h3>
+            <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">
+                ส่งออกหน้าร้านออนไลน์สไตล์สตรีทของคุณ โดยหน้าร้านนี้จะดึงข้อมูลสินค้าที่ "รอลง (Pending)" ในระบบมาแสดงสดทางหน้าเว็บได้ทันที
+            </p>
+            <div style="display:flex; gap:8px;">
+                <button class="btn btn-sm btn-primary" onclick="exportShopHTML()">🔗 ส่งออก shop.html</button>
             </div>
         </div>
         <div class="card">
@@ -831,6 +878,17 @@ Price : {Price} บาท
         <div class="form-row"><input id="editSaleQty" type="number" placeholder="จำนวน"><input id="editSalePrice" type="number" placeholder="ราคา/ตัว"></div>
         <div class="form-row"><input id="editSaleCustomer" placeholder="ชื่อลูกค้า"><input id="editSaleContact" placeholder="@line/ig"></div>
         <input id="editSaleDetails" placeholder="ไซส์/แบรนด์/สภาพ" style="margin-bottom:10px;width:100%;">
+        <div class="form-row" style="margin-bottom:10px;">
+            <select id="editSaleStatus" onchange="toggleEditPaymentInputs()">
+                <option value="paid">✅ จ่ายเต็ม</option>
+                <option value="deposit">💰 มัดจำ</option>
+                <option value="hold">⏳ จองสินค้า</option>
+            </select>
+            <div id="editPaymentInputsWrapper" style="display:flex; gap:8px; width:100%;">
+                <input id="editSaleDeposit" type="number" placeholder="เงินมัดจำ (฿)" style="display:none;">
+                <input id="editSaleDueDate" type="date" style="display:none;">
+            </div>
+        </div>
         <div style="display:flex;gap:8px;">
             <button class="btn btn-primary" onclick="saveEditSale()">💾 บันทึก</button>
             <button class="btn btn-ghost" onclick="closeModal('editSaleModal')">ยกเลิก</button>
@@ -864,6 +922,8 @@ let isSyncing = false;
 let salePage = 1;
 const SALE_PAGE_SIZE = 20;
 const DEFAULT_CATS = ["เสื้อยืดคอกลม","เสื้อโปโล","เสื้อฮู้ด","เสื้อแจ็คเก็ต","เสื้อวินเทจ","แบรนด์เนม"];
+let gumloopSettings = { userId: '', savedItemId: '', apiKey: '' };
+
 function fmt(n) { return Math.round(n).toLocaleString('th-TH') + '฿'; }
 function fmtN(n) { return Math.round(n).toLocaleString('th-TH'); }
 function cpu(lot) { return (lot.cost + lot.ship + lot.pack) / (lot.totalShirts || 1); }
@@ -924,7 +984,6 @@ function saveLocal() {
 }
 function loadLocal() {
     let raw = localStorage.getItem('hh_data');
-    // Migration from old key
     if (!raw) raw = localStorage.getItem('dwo_data');
     if (raw) {
         try {
@@ -969,7 +1028,11 @@ function renderAll() {
 function renderStats() {
     let totalShirts = DB.lots.reduce((a, l) => a + (l.totalShirts || 0), 0);
     let sold = DB.sales.reduce((a, s) => a + s.qty, 0);
-    let rev = DB.sales.reduce((a, s) => a + s.qty * s.price, 0);
+    let rev = DB.sales.reduce((a, s) => {
+        if (s.status === 'paid' || !s.status) return a + s.qty * s.price;
+        if (s.status === 'deposit') return a + (s.depositAmount || 0);
+        return a;
+    }, 0);
     let profit = rev - DB.sales.reduce((a, s) => {
         let lot = DB.lots.find(l => l.id === s.lotId);
         let c = lot ? cpu(lot) : 0;
@@ -980,7 +1043,7 @@ function renderStats() {
         <div class="stat"><div class="stat-label">เสื้อทั้งหมด</div><div class="stat-val">${fmtN(totalShirts)}</div></div>
         <div class="stat"><div class="stat-label">ขายแล้ว</div><div class="stat-val">${fmtN(sold)}</div></div>
         <div class="stat"><div class="stat-label">รอขาย</div><div class="stat-val">${fmtN(Math.max(0, totalShirts - sold))}</div></div>
-        <div class="stat"><div class="stat-label">รายได้</div><div class="stat-val">${fmt(rev)}</div></div>
+        <div class="stat"><div class="stat-label">รายได้รวม</div><div class="stat-val">${fmt(rev)}</div></div>
         <div class="stat"><div class="stat-label">กำไรสุทธิ</div><div class="stat-val ${profit >= 0 ? 'profit-positive' : 'profit-negative'}">${profit >= 0 ? '+' : ''}${fmt(profit)}</div></div>
     `;
     let recent = DB.lots.slice(-3).reverse().map(l => `<div style="padding:6px 0;border-bottom:1px solid var(--border);">📦 <b>${l.name}</b> — ขาย ${fmtN(soldOf(l.id))}/${fmtN(l.totalShirts || 0)} ตัว</div>`).join('');
@@ -1026,13 +1089,38 @@ function renderSales() {
     let html = paged.map(s => {
         let lot = DB.lots.find(l => l.id === s.lotId);
         let costPer = lot ? cpu(lot) : 0;
-        let profit = (s.price - costPer) * s.qty;
+        let totalCost = costPer * s.qty;
+        let revReceived = (s.status === 'paid' || !s.status) ? (s.price * s.qty) : ((s.status === 'deposit') ? (s.depositAmount || 0) : 0);
+        let profit = revReceived - totalCost;
+        
+        let statusBadge = '';
+        if (s.status === 'paid' || !s.status) {
+            statusBadge = `<span class="badge" style="border-color: var(--success); color: var(--success);">✅ จ่ายเต็ม</span>`;
+        } else if (s.status === 'deposit') {
+            statusBadge = `<span class="badge" style="border-color: var(--warning); color: var(--warning);">💰 มัดจำ ${fmt(s.depositAmount)} (ค้าง ${fmt((s.qty * s.price) - s.depositAmount)})</span>`;
+        } else if (s.status === 'hold') {
+            statusBadge = `<span class="badge" style="border-color: var(--hot-pink); color: var(--hot-pink);">⏳ จอง (ค้าง ${fmt(s.qty * s.price)})</span>`;
+        }
+        
+        let actionBtn = '';
+        if (s.status === 'deposit' || s.status === 'hold') {
+            actionBtn = `<button class="btn btn-sm btn-lime" onclick="completePayment('${s.id}')" style="margin-left:6px;">💳 รับชำระเต็ม</button>`;
+        }
+        
         return `<div class="sale-item">
             <div class="sale-header"><b>${lot?.name || '?'}</b> ${s.shirt} x${s.qty} = ${fmt(s.qty * s.price)} <span class="sale-profit ${profit >= 0 ? 'profit-positive' : 'profit-negative'}">(${profit >= 0 ? '+' : ''}${fmt(profit)})</span></div>
-            <span class="badge">👤 ${s.customer || '-'} (${s.contact || '-'})</span>
-            <span style="font-size:11px;color:var(--text-muted);margin-left:8px;">${s.date?.slice(0, 10) || ''}</span>
-            <button class="btn btn-sm btn-ghost" onclick="openEditSale('${s.id}')" style="margin-left:6px;">✏️</button>
-            <button class="btn btn-sm btn-danger" onclick="deleteSale('${s.id}')">🗑️</button>
+            <div style="margin: 4px 0 6px 0; display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
+                ${statusBadge}
+                <span class="badge">👤 ${s.customer || '-'} (${s.contact || '-'})</span>
+                ${s.details ? `<span class="badge">🔍 ${s.details}</span>` : ''}
+                ${s.dueDate ? `<span class="badge" style="border-color: var(--warning);">⏰ ครบกำหนด: ${s.dueDate}</span>` : ''}
+                <span style="font-size:11px;color:var(--text-muted);margin-left:auto;">${s.date?.slice(0, 10) || ''}</span>
+            </div>
+            <div>
+                <button class="btn btn-sm btn-ghost" onclick="openEditSale('${s.id}')">✏️ แก้ไข</button>
+                ${actionBtn}
+                <button class="btn btn-sm btn-danger" onclick="deleteSale('${s.id}')" style="margin-left:6px;">🗑️ ลบ</button>
+            </div>
         </div>`;
     }).join('');
     document.getElementById('saleList').innerHTML = html || '<div class="info-box">ไม่มีรายการ</div>';
@@ -1042,8 +1130,28 @@ function renderSales() {
     for (let i = 1; i <= totalPages; i++) pHtml += `<button class="page-btn ${i === salePage ? 'active' : ''}" onclick="salePage=${i};renderSales()">${i}</button>`;
     paginEl.innerHTML = pHtml;
 }
+async function completePayment(saleId) {
+    let sale = DB.sales.find(s => s.id === saleId);
+    if (!sale) return;
+    if (!confirm(`ยืนยันการรับชำระส่วนที่เหลือสำหรับรายการนี้? (ยอดชำระเพิ่มเติม: ${fmt(sale.qty * sale.price - (sale.depositAmount || 0))})`)) return;
+    
+    sale.status = 'paid';
+    sale.depositAmount = 0;
+    sale.dueDate = '';
+    
+    saveLocal(); renderAll(); showToast('💳 ชำระเงินเสร็จสมบูรณ์!');
+    if (firestore && currentRoom) {
+        try { await firestore.collection('rooms').doc(currentRoom).collection('sales').doc(saleId).set(sale); }
+        catch (e) { showToast('⚠️ อัปเดตคลาวด์ล้มเหลว'); }
+    }
+    await triggerGumloop({ event: 'payment_completed', sale: sale, lot: DB.lots.find(l => l.id === sale.lotId) });
+}
 function renderSummary() {
-    let totalRev = DB.sales.reduce((a, s) => a + s.qty * s.price, 0);
+    let totalRev = DB.sales.reduce((a, s) => {
+        if (s.status === 'paid' || !s.status) return a + s.qty * s.price;
+        if (s.status === 'deposit') return a + (s.depositAmount || 0);
+        return a;
+    }, 0);
     let totalCostSold = DB.sales.reduce((a, s) => {
         let lot = DB.lots.find(l => l.id === s.lotId);
         let c = lot ? cpu(lot) : 0;
@@ -1052,15 +1160,23 @@ function renderSummary() {
     let netProfit = totalRev - totalCostSold;
     document.getElementById('summaryContent').innerHTML = `
         <div class="stat-grid">
-            <div class="stat"><div class="stat-label">รายได้รวม</div><div class="stat-val">${fmt(totalRev)}</div></div>
-            <div class="stat"><div class="stat-label">ต้นทุนที่ขายแล้ว</div><div class="stat-val">${fmt(totalCostSold)}</div></div>
-            <div class="stat"><div class="stat-label">กำไรสุทธิ</div><div class="stat-val ${netProfit >= 0 ? 'profit-positive' : 'profit-negative'}">${netProfit >= 0 ? '+' : ''}${fmt(netProfit)}</div></div>
+            <div class="stat"><div class="stat-label">รายได้รวม (รับจริง)</div><div class="stat-val">${fmt(totalRev)}</div></div>
+            <div class="stat"><div class="stat-label">ต้นทุนเสื้อที่ปล่อย</div><div class="stat-val">${fmt(totalCostSold)}</div></div>
+            <div class="stat"><div class="stat-label">กำไรสุทธิปัจจุบัน</div><div class="stat-val ${netProfit >= 0 ? 'profit-positive' : 'profit-negative'}">${netProfit >= 0 ? '+' : ''}${fmt(netProfit)}</div></div>
         </div>`;
 }
 function renderLotSelect() {
     let sel = document.getElementById('sellLot');
-    sel.innerHTML = '<option value="">— เลือกล็อต —</option>' + DB.lots.map(l => `<option value="${l.id}">${l.name} (ต้นทุน ${fmt(cpu(l))})</option>`).join('');
+    let options = '<option value="">— เลือกล็อต —</option>' + DB.lots.map(l => `<option value="${l.id}">${l.name} (ต้นทุน ${fmt(cpu(l))})</option>`).join('');
+    sel.innerHTML = options;
+    
+    let igSel = document.getElementById('igLot');
+    if (igSel) {
+        igSel.innerHTML = '<option value="">— ไม่ระบุล็อต —</option>' + DB.lots.map(l => `<option value="${l.id}">${l.name}</option>`).join('');
+    }
+    
     updateShirtSelect();
+    updateIgPriceSuggestion();
 }
 function updateShirtSelect() {
     let lotId = document.getElementById('sellLot').value;
@@ -1068,9 +1184,54 @@ function updateShirtSelect() {
     let cats = lot?.categories?.length ? lot.categories : DB.categories;
     document.getElementById('sellShirt').innerHTML = '<option value="">— หมวด —</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
     let preview = document.getElementById('sellCostPreview');
-    if (lot) preview.innerHTML = `<div class="info-box">ต้นทุน/ตัว ${fmt(cpu(lot))} · เสื้อในล็อต ${fmtN(lot.totalShirts)} ตัว</div>`;
-    else preview.innerHTML = '';
+    if (lot) {
+        let cost = cpu(lot);
+        let fastPrice = Math.round(cost * 1.3);
+        let stdPrice = Math.round(cost * 1.5);
+        let hypePrice = Math.round(cost * 2.0);
+        preview.innerHTML = `
+            <div class="info-box" style="margin-bottom: 8px;">
+                ต้นทุน/ตัว ${fmt(cost)} · เสื้อในล็อต ${fmtN(lot.totalShirts)} ตัว
+            </div>
+            <div style="font-size: 12px; margin-bottom: 10px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                <span>💡 ราคาแนะนำ:</span>
+                <button class="btn btn-sm btn-ghost" onclick="setSellPrice(${fastPrice}); event.preventDefault();">⚡ ออกไว (฿${fastPrice})</button>
+                <button class="btn btn-sm btn-ghost" onclick="setSellPrice(${stdPrice}); event.preventDefault();">⚖️ มาตรฐาน (฿${stdPrice})</button>
+                <button class="btn btn-sm btn-ghost" onclick="setSellPrice(${hypePrice}); event.preventDefault();">🔥 ปล่อย Hype (฿${hypePrice})</button>
+            </div>
+        `;
+    } else {
+        preview.innerHTML = '';
+    }
     previewProfit();
+}
+function setSellPrice(price) {
+    document.getElementById('sellPrice').value = price;
+    previewProfit();
+}
+function updateIgPriceSuggestion() {
+    let lotId = document.getElementById('igLot').value;
+    let lot = DB.lots.find(l => l.id === lotId);
+    let preview = document.getElementById('igCostPreview');
+    if (lot) {
+        let cost = cpu(lot);
+        let fastPrice = Math.round(cost * 1.3);
+        let stdPrice = Math.round(cost * 1.5);
+        let hypePrice = Math.round(cost * 2.0);
+        preview.innerHTML = `
+            <div style="font-size: 12px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                <span>💡 ราคาแนะนำ:</span>
+                <button class="btn btn-sm btn-ghost" onclick="setIgPrice(${fastPrice}); event.preventDefault();">⚡ ออกไว (฿${fastPrice})</button>
+                <button class="btn btn-sm btn-ghost" onclick="setIgPrice(${stdPrice}); event.preventDefault();">⚖️ มาตรฐาน (฿${stdPrice})</button>
+                <button class="btn btn-sm btn-ghost" onclick="setIgPrice(${hypePrice}); event.preventDefault();">🔥 ปล่อย Hype (฿${hypePrice})</button>
+            </div>
+        `;
+    } else {
+        preview.innerHTML = '';
+    }
+}
+function setIgPrice(price) {
+    document.getElementById('igPrice').value = price;
 }
 function previewProfit() {
     let lotId = document.getElementById('sellLot').value;
@@ -1129,6 +1290,7 @@ async function deleteIgPost(id) {
 function renderAlerts() {
     let alerts = [];
     let now = new Date();
+    
     DB.lots.forEach(lot => {
         if (lot.date) {
             let days = (now - new Date(lot.date)) / (1000 * 3600 * 24);
@@ -1136,13 +1298,27 @@ function renderAlerts() {
             if (days > 30 && soldPct < 30) alerts.push(`⚠️ ล็อต "${lot.name}" ผ่านมา ${Math.floor(days)} วัน ขายได้ ${soldPct.toFixed(0)}%`);
         }
     });
+    
+    let todayStr = now.toISOString().slice(0, 10);
+    DB.sales.forEach(s => {
+        if (s.status !== 'paid' && s.status && s.dueDate && s.dueDate < todayStr) {
+            let lot = DB.lots.find(l => l.id === s.lotId);
+            let typeText = s.status === 'deposit' ? 'มัดจำ' : 'จอง';
+            alerts.push(`⏰ รายการ${typeText} ของคุณ ${s.customer || '-'} (${lot?.name || '?'}) เลยกำหนดจ่าย (${s.dueDate})`);
+        }
+    });
+    
     document.getElementById('alertArea').innerHTML = alerts.length ? `<div class="cat-warning">${alerts.join('<br>')}</div>` : '';
-    if (alerts.length && notify.stale && webhookUrl) sendDiscord(`📦 สินค้าค้างสต๊อก:\n${alerts.join('\n')}`);
+    if (alerts.length && notify.stale && webhookUrl) sendDiscord(`📦 แจ้งเตือน HypeHunt:\n${alerts.join('\n')}`);
 }
 let dailyChart, catChart;
 function renderCharts() {
     let last7 = [...Array(7)].map((_, i) => { let d = new Date(); d.setDate(d.getDate() - i); return d.toISOString().slice(0, 10); }).reverse();
-    let dailyRev = last7.map(day => DB.sales.filter(s => s.date?.slice(0, 10) === day).reduce((a, s) => a + s.qty * s.price, 0));
+    let dailyRev = last7.map(day => DB.sales.filter(s => s.date?.slice(0, 10) === day).reduce((a, s) => {
+        if (s.status === 'paid' || !s.status) return a + s.qty * s.price;
+        if (s.status === 'deposit') return a + (s.depositAmount || 0);
+        return a;
+    }, 0));
     let ctx = document.getElementById('dailyChart')?.getContext('2d');
     if (ctx) {
         if (dailyChart) dailyChart.destroy();
@@ -1151,7 +1327,7 @@ function renderCharts() {
             data: {
                 labels: last7.map(d => d.slice(5)),
                 datasets: [{
-                    label: 'รายได้ (บาท)',
+                    label: 'รายได้จริง (บาท)',
                     data: dailyRev,
                     borderColor: '#A855F7',
                     backgroundColor: 'rgba(168, 85, 247, 0.1)',
@@ -1176,7 +1352,10 @@ function renderCharts() {
     DB.sales.forEach(s => {
         let lot = DB.lots.find(l => l.id === s.lotId);
         let c = lot ? cpu(lot) : 0;
-        let profit = (s.price - c) * s.qty;
+        let rev = 0;
+        if (s.status === 'paid' || !s.status) rev = s.price * s.qty;
+        else if (s.status === 'deposit') rev = s.depositAmount || 0;
+        let profit = rev - (c * s.qty);
         let cat = s.shirt || 'อื่นๆ';
         catProfit[cat] = (catProfit[cat] || 0) + profit;
     });
@@ -1189,7 +1368,7 @@ function renderCharts() {
             data: {
                 labels: Object.keys(catProfit),
                 datasets: [{
-                    label: 'กำไร',
+                    label: 'กำไรจริงปัจจุบัน',
                     data: Object.values(catProfit),
                     backgroundColor: Object.keys(catProfit).map((_, i) => colors[i % colors.length]),
                     borderRadius: 6
@@ -1209,24 +1388,49 @@ function renderCharts() {
 // ==============================================================
 // IG POST TEMPLATE
 // ==============================================================
+function getFitAndHeight(chest, length) {
+    let fit = "Regular Fit";
+    let height = "ทั่วไป";
+    if (chest) {
+        let c = parseFloat(chest);
+        if (c < 38) fit = "Small Fit";
+        else if (c >= 38 && c <= 42) fit = "Regular/Slim Fit";
+        else if (c >= 43 && c <= 46) fit = "Oversized Look";
+        else if (c >= 47) fit = "Extreme Oversized";
+    }
+    if (length) {
+        let l = parseFloat(length);
+        if (l < 26) height = "เหมาะสำหรับคนสูง < 165 cm";
+        else if (l >= 26 && l <= 28) height = "เหมาะสำหรับคนสูง 165-175 cm";
+        else if (l >= 29 && l <= 31) height = "เหมาะสำหรับคนสูง 175-185 cm";
+        else if (l > 31) height = "เหมาะสำหรับคนสูง 185 cm ขึ้นไป";
+    }
+    return { fit, height };
+}
+
 function applyIgTemplate() {
     let template = document.getElementById('igTemplate').value;
+    let chestVal = document.getElementById('igChest').value || '';
+    let lengthVal = document.getElementById('igLength').value || '';
+    let rec = getFitAndHeight(chestVal, lengthVal);
     let content = template
         .replace(/{แบรนด์}/g, document.getElementById('igBrand').value || '')
         .replace(/{Size}/g, document.getElementById('igSize').value || '')
-        .replace(/{อก}/g, document.getElementById('igChest').value || '')
-        .replace(/{ยาว}/g, document.getElementById('igLength').value || '')
+        .replace(/{อก}/g, chestVal)
+        .replace(/{ยาว}/g, lengthVal)
+        .replace(/{ทรงเสื้อ}/g, rec.fit)
+        .replace(/{ส่วนสูงที่แนะนำ}/g, rec.height)
         .replace(/{สภาพ}/g, document.getElementById('igCondition').value || '')
         .replace(/{ตำหนิ}/g, document.getElementById('igFlaws').value || '')
         .replace(/{Price}/g, document.getElementById('igPrice').value || '');
     document.getElementById('igContent').value = content;
 }
 function resetIgTemplate() {
-    document.getElementById('igTemplate').value = `แบรนด์ {แบรนด์}\nSize : {Size}\nอก : {อก} นิ้ว\nยาว : {ยาว} นิ้ว\nสภาพ : {สภาพ}\nตำหนิ : {ตำหนิ}\nPrice : {Price} บาท\nอ่านรายละเอียดให้มั่นใจก่อนตัดสินใจพิมพ์รับ\nสินค้าทำความสะอาดแล้วคับแต่แนะนำให้ซักอีกรอบ\nสนใจสินค้าเม้นใต้โพสต์ หรือ DMมาสอบถามได้\nดีเทลอาจจะคลาดเคลื่อน 0.5+`;
+    document.getElementById('igTemplate').value = `แบรนด์ {แบรนด์}\nSize : {Size}\nอก : {อก} นิ้ว\nยาว : {ยาว} นิ้ว\nทรงใส่ : {ทรงเสื้อ}\nความสูงแนะนำ : {ส่วนสูงที่แนะนำ}\nสภาพ : {สภาพ}\nตำหนิ : {ตำหนิ}\nPrice : {Price} บาท\nอ่านรายละเอียดให้มั่นใจก่อนตัดสินใจพิมพ์รับ\nสินค้าทำความสะอาดแล้วคับแต่แนะนำให้ซักอีกรอบ\nสนใจสินค้าเม้นใต้โพสต์ หรือ DMมาสอบถามได้\nดีเทลอาจจะคลาดเคลื่อน 0.5+`;
     showToast('🔄 คืนค่าเทมเพลตแล้ว');
 }
 // ==============================================================
-// CRUD OPERATIONS
+// CRUD OPERATIONS (เพิ่ม triggerGumloop)
 // ==============================================================
 async function addLot() {
     let name = document.getElementById('lotName').value.trim();
@@ -1249,6 +1453,9 @@ async function addLot() {
             if (notify.lot && webhookUrl) sendDiscord(`📦 เพิ่มล็อต: ${name} (${total} ตัว)`);
         } catch (e) { showToast('⚠️ บันทึก local แล้ว แต่คลาวด์ล้มเหลว'); }
     } else showToast('💾 บันทึกไว้ในเครื่อง');
+    
+    // ส่งข้อมูลไป Gumloop
+    await triggerGumloop({ event: 'new_lot', lot: newLot });
 }
 function clearLotForm() {
     ['lotName', 'lotTotal', 'lotCost', 'lotShip', 'lotPack', 'lotWeight'].forEach(id => document.getElementById(id).value = '');
@@ -1270,6 +1477,22 @@ async function deleteLot(lotId) {
         } catch (e) { DB.lots = oldLots; DB.sales = oldSales; saveLocal(); renderAll(); alert('ลบไม่สำเร็จ กรุณาลองใหม่'); }
     }
 }
+function togglePaymentInputs() {
+    let status = document.getElementById('paymentStatus').value;
+    let depInput = document.getElementById('depositAmount');
+    let dateInput = document.getElementById('paymentDueDate');
+    if (status === 'paid') {
+        depInput.style.display = 'none';
+        dateInput.style.display = 'none';
+    } else if (status === 'deposit') {
+        depInput.style.display = 'block';
+        dateInput.style.display = 'block';
+    } else if (status === 'hold') {
+        depInput.style.display = 'none';
+        dateInput.style.display = 'block';
+    }
+    previewProfit();
+}
 async function addSale() {
     let lotId = document.getElementById('sellLot').value;
     let shirt = document.getElementById('sellShirt').value;
@@ -1278,16 +1501,38 @@ async function addSale() {
     let customer = document.getElementById('customerName').value;
     let contact = document.getElementById('customerContact').value;
     let details = document.getElementById('extraDetails').value;
+    let status = document.getElementById('paymentStatus').value;
+    let depositAmount = status === 'deposit' ? (parseFloat(document.getElementById('depositAmount').value) || 0) : 0;
+    let dueDate = status !== 'paid' ? (document.getElementById('paymentDueDate').value || '') : '';
+    
     if (!lotId || !price) { alert('เลือกล็อตและใส่ราคา'); return; }
-    let newSale = { id: Date.now().toString(), lotId, shirt, qty, price, date: new Date().toISOString(), customer, contact, details };
+    let newSale = { 
+        id: Date.now().toString(), 
+        lotId, 
+        shirt, 
+        qty, 
+        price, 
+        date: new Date().toISOString(), 
+        customer, 
+        contact, 
+        details,
+        status,
+        depositAmount,
+        dueDate
+    };
     DB.sales.push(newSale); saveLocal(); renderAll(); clearSaleForm();
     if (firestore && currentRoom) {
         try {
             await firestore.collection('rooms').doc(currentRoom).collection('sales').doc(newSale.id).set(newSale);
             showToast('✅ บันทึกการขายลงคลาวด์');
-            if (notify.sale && webhookUrl) sendDiscord(`💰 ขาย: ${DB.lots.find(l => l.id === lotId)?.name} ${shirt} ${qty} ตัว รวม ${fmt(qty * price)}`);
+            let statusText = status === 'paid' ? 'จ่ายเต็ม' : (status === 'deposit' ? `มัดจำ ${fmt(depositAmount)} (ค้าง ${fmt((price*qty)-depositAmount)})` : 'จองสินค้า');
+            if (notify.sale && webhookUrl) sendDiscord(`💰 ขาย (${statusText}): ${DB.lots.find(l => l.id === lotId)?.name} ${shirt} ${qty} ตัว รวม ${fmt(qty * price)}`);
         } catch (e) { showToast('⚠️ บันทึก local แล้ว แต่คลาวด์ล้มเหลว'); }
     } else showToast('💾 บันทึกไว้ในเครื่อง');
+    
+    // ส่งข้อมูลไป Gumloop
+    let lot = DB.lots.find(l => l.id === lotId);
+    await triggerGumloop({ event: 'new_sale', sale: newSale, lot: lot });
 }
 function clearSaleForm() {
     document.getElementById('sellPrice').value = '';
@@ -1295,6 +1540,10 @@ function clearSaleForm() {
     document.getElementById('customerContact').value = '';
     document.getElementById('extraDetails').value = '';
     document.getElementById('sellQty').value = '1';
+    document.getElementById('paymentStatus').value = 'paid';
+    document.getElementById('depositAmount').value = '';
+    document.getElementById('paymentDueDate').value = '';
+    togglePaymentInputs();
 }
 async function deleteSale(saleId) {
     if (!confirm('ลบรายการขาย?')) return;
@@ -1341,7 +1590,27 @@ async function addIgPost() {
     let title = document.getElementById('igTitle').value.trim();
     let content = document.getElementById('igContent').value.trim();
     if (!content) { alert('กรุณาสร้างข้อความโพสต์ก่อน'); return; }
-    let newPost = { id: Date.now().toString(), title: title || 'โพสต์', content, status: 'pending', date: new Date().toISOString() };
+    
+    let imgUrl = document.getElementById('igImgUrl').value.trim();
+    let brand = document.getElementById('igBrand').value.trim();
+    let size = document.getElementById('igSize').value.trim();
+    let chest = document.getElementById('igChest').value.trim();
+    let length = document.getElementById('igLength').value.trim();
+    let price = parseFloat(document.getElementById('igPrice').value) || 0;
+    
+    let newPost = { 
+        id: Date.now().toString(), 
+        title: title || 'โพสต์', 
+        content, 
+        status: 'pending', 
+        date: new Date().toISOString(),
+        imgUrl,
+        brand,
+        size,
+        chest,
+        length,
+        price
+    };
     DB.igPosts.push(newPost); saveLocal(); renderAll();
     if (firestore && currentRoom) {
         try { await firestore.collection('rooms').doc(currentRoom).collection('igPosts').doc(newPost.id).set(newPost); }
@@ -1349,6 +1618,12 @@ async function addIgPost() {
     }
     document.getElementById('igTitle').value = '';
     document.getElementById('igContent').value = '';
+    document.getElementById('igImgUrl').value = '';
+    document.getElementById('igBrand').value = '';
+    document.getElementById('igSize').value = '';
+    document.getElementById('igChest').value = '';
+    document.getElementById('igLength').value = '';
+    document.getElementById('igPrice').value = '';
     showToast('✅ บันทึกโพสต์แล้ว');
 }
 // ==============================================================
@@ -1381,6 +1656,22 @@ async function saveEditLot() {
         try { await firestore.collection('rooms').doc(currentRoom).collection('lots').doc(lotId).set(lot); }
         catch (e) { showToast('⚠️ แก้ไขคลาวด์ล้มเหลว'); }
     }
+    await triggerGumloop({ event: 'edit_lot', lot: lot });
+}
+function toggleEditPaymentInputs() {
+    let status = document.getElementById('editSaleStatus').value;
+    let depInput = document.getElementById('editSaleDeposit');
+    let dateInput = document.getElementById('editSaleDueDate');
+    if (status === 'paid') {
+        depInput.style.display = 'none';
+        dateInput.style.display = 'none';
+    } else if (status === 'deposit') {
+        depInput.style.display = 'block';
+        dateInput.style.display = 'block';
+    } else if (status === 'hold') {
+        depInput.style.display = 'none';
+        dateInput.style.display = 'block';
+    }
 }
 function openEditSale(saleId) {
     let sale = DB.sales.find(s => s.id === saleId);
@@ -1391,6 +1682,12 @@ function openEditSale(saleId) {
     document.getElementById('editSaleCustomer').value = sale.customer || '';
     document.getElementById('editSaleContact').value = sale.contact || '';
     document.getElementById('editSaleDetails').value = sale.details || '';
+    
+    document.getElementById('editSaleStatus').value = sale.status || 'paid';
+    document.getElementById('editSaleDeposit').value = sale.depositAmount || '';
+    document.getElementById('editSaleDueDate').value = sale.dueDate || '';
+    toggleEditPaymentInputs();
+    
     document.getElementById('editSaleModal').classList.add('open');
 }
 async function saveEditSale() {
@@ -1402,11 +1699,17 @@ async function saveEditSale() {
     sale.customer = document.getElementById('editSaleCustomer').value;
     sale.contact = document.getElementById('editSaleContact').value;
     sale.details = document.getElementById('editSaleDetails').value;
+    
+    sale.status = document.getElementById('editSaleStatus').value;
+    sale.depositAmount = sale.status === 'deposit' ? (parseFloat(document.getElementById('editSaleDeposit').value) || 0) : 0;
+    sale.dueDate = sale.status !== 'paid' ? (document.getElementById('editSaleDueDate').value || '') : '';
+    
     saveLocal(); renderAll(); closeModal('editSaleModal'); showToast('✅ แก้ไขรายการขายแล้ว');
     if (firestore && currentRoom) {
         try { await firestore.collection('rooms').doc(currentRoom).collection('sales').doc(saleId).set(sale); }
         catch (e) { showToast('⚠️ แก้ไขคลาวด์ล้มเหลว'); }
     }
+    await triggerGumloop({ event: 'edit_sale', sale: sale, lot: DB.lots.find(l => l.id === sale.lotId) });
 }
 // ==============================================================
 // QR CODE
@@ -1455,7 +1758,7 @@ function openScanner() {
     }
 }
 // ==============================================================
-// FIREBASE CONFIG & SYNC (แก้ไขแล้ว)
+// FIREBASE CONFIG & SYNC
 // ==============================================================
 async function testAndSaveConfig() {
     let raw = document.getElementById('firebaseConfigInput').value.trim();
@@ -1463,7 +1766,6 @@ async function testAndSaveConfig() {
     if (!raw) { result.innerHTML = '⚠️ กรุณาใส่ Firebase config'; return; }
     let config;
     try { config = JSON.parse(raw); } catch (e) { result.innerHTML = '❌ JSON ไม่ถูกต้อง'; return; }
-    // ตรวจสอบ apiKey
     if (!config.apiKey || !config.apiKey.startsWith('AIza')) {
         result.innerHTML = '❌ apiKey ต้องขึ้นต้นด้วย AIza เท่านั้น';
         return;
@@ -1473,7 +1775,6 @@ async function testAndSaveConfig() {
         return;
     }
     try {
-        // ใช้ app name คงที่ เพื่อไม่ให้สร้างซ้ำ
         let appName = 'hypehunt_app';
         let app;
         if (firebase.apps.some(a => a.name === appName)) {
@@ -1482,7 +1783,6 @@ async function testAndSaveConfig() {
             app = firebase.initializeApp(config, appName);
         }
         let db = app.firestore();
-        // ทดสอบเขียนด้วย collection 'test_write' (ไม่ใช่ __test__)
         await db.collection('test_write').doc('ping').set({ t: Date.now() });
         await db.collection('test_write').doc('ping').delete();
         firestore = db;
@@ -1490,7 +1790,6 @@ async function testAndSaveConfig() {
         localStorage.setItem('hh_firebase', JSON.stringify(config));
         result.innerHTML = '✅ เชื่อมต่อ Firebase สำเร็จ! พร้อมใช้งาน';
         showToast('✅ Firebase พร้อมใช้งาน');
-        // ถ้ามี room ใน local ให้เชื่อมต่ออัตโนมัติ
         let savedRoom = localStorage.getItem('hh_room');
         if (savedRoom && firestore) {
             document.getElementById('roomIdInput').value = savedRoom;
@@ -1509,7 +1808,6 @@ function loadFirebaseConfig() {
         try {
             let config = JSON.parse(raw);
             document.getElementById('firebaseConfigInput').value = JSON.stringify(config, null, 2);
-            // Initialize Firebase
             let appName = 'hypehunt_app';
             let app;
             if (firebase.apps.some(a => a.name === appName)) {
@@ -1520,7 +1818,6 @@ function loadFirebaseConfig() {
             firestore = app.firestore();
             isCloudConnected = true;
             document.getElementById('configTestResult').innerHTML = '✅ โหลด config อัตโนมัติ';
-            // ถ้ามี room ให้เชื่อมต่อ
             let savedRoom = localStorage.getItem('hh_room');
             if (savedRoom) {
                 document.getElementById('roomIdInput').value = savedRoom;
@@ -1541,12 +1838,10 @@ function joinRoom(roomId) {
     localStorage.setItem('hh_room', roomId);
     document.getElementById('roomStatus').innerHTML = `<span class="online-dot"></span>กลุ่ม: <b>${roomId}</b>`;
     document.getElementById('roomStatus').style.color = 'var(--success)';
-    // Unsubscribe เก่า
     if (unsubLots) unsubLots();
     if (unsubSales) unsubSales();
     if (unsubIg) unsubIg();
     if (unsubCats) unsubCats();
-    // Subscribe
     let roomRef = firestore.collection('rooms').doc(roomId);
     unsubLots = roomRef.collection('lots').onSnapshot(snap => {
         if (isSyncing) return;
@@ -1643,6 +1938,75 @@ async function testWebhook() {
     } catch (e) { showToast('❌ ส่งไม่สำเร็จ'); }
 }
 // ==============================================================
+// GUMloop Integration
+// ==============================================================
+function loadGumloopSettings() {
+    let raw = localStorage.getItem('hh_gumloop');
+    if (raw) {
+        try {
+            let data = JSON.parse(raw);
+            gumloopSettings = data;
+            document.getElementById('gumloopUserId').value = data.userId || '';
+            document.getElementById('gumloopSavedItemId').value = data.savedItemId || '';
+            document.getElementById('gumloopApiKey').value = data.apiKey || '';
+        } catch (e) { }
+    }
+}
+function saveGumloopSettings() {
+    gumloopSettings = {
+        userId: document.getElementById('gumloopUserId').value.trim(),
+        savedItemId: document.getElementById('gumloopSavedItemId').value.trim(),
+        apiKey: document.getElementById('gumloopApiKey').value.trim()
+    };
+    localStorage.setItem('hh_gumloop', JSON.stringify(gumloopSettings));
+    showToast('💾 บันทึกข้อมูล Gumloop แล้ว');
+    document.getElementById('gumloopTestResult').style.display = 'none';
+}
+async function testGumloopConnection() {
+    let resultDiv = document.getElementById('gumloopTestResult');
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = '⏳ กำลังทดสอบ...';
+    try {
+        let testPayload = { event: 'test', message: 'Hello from HypeHunt' };
+        let response = await triggerGumloop(testPayload, true);
+        if (response && response.run_id) {
+            resultDiv.innerHTML = `✅ เชื่อมต่อสำเร็จ! Run ID: ${response.run_id}`;
+        } else {
+            resultDiv.innerHTML = '⚠️ เชื่อมต่อแล้ว แต่ไม่ได้รับ run_id (อาจตั้งค่า Workflow ไม่ถูกต้อง)';
+        }
+    } catch (e) {
+        resultDiv.innerHTML = `❌ ผิดพลาด: ${e.message}`;
+    }
+}
+async function triggerGumloop(data, silent = false) {
+    let { userId, savedItemId, apiKey } = gumloopSettings;
+    if (!userId || !savedItemId || !apiKey) {
+        if (!silent) showToast('⚠️ กรุณาตั้งค่า Gumloop ในหน้า Settings');
+        throw new Error('Missing Gumloop credentials');
+    }
+    const url = `https://api.gumloop.com/api/v1/start_pipeline?user_id=${userId}&saved_item_id=${savedItemId}`;
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+        const result = await response.json();
+        if (!silent) console.log('Gumloop Run ID:', result.run_id);
+        return result;
+    } catch (error) {
+        if (!silent) showToast(`⚠️ ส่งไป Gumloop ไม่สำเร็จ: ${error.message}`);
+        throw error;
+    }
+}
+// ==============================================================
 // EXPORT
 // ==============================================================
 function exportCloudData() {
@@ -1666,6 +2030,363 @@ function exportCSV() {
     a.download = `hypehunt-sales-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     showToast('📊 Export CSV สำเร็จ');
+}
+function exportShopHTML() {
+    let firebaseRaw = localStorage.getItem('hh_firebase');
+    let room = localStorage.getItem('hh_room');
+    if (!firebaseRaw || !room) {
+        alert('กรุณาตั้งค่า Firebase และเข้ากลุ่ม (Room ID) ก่อนส่งออกหน้าร้านค้า');
+        return;
+    }
+    let config = JSON.parse(firebaseRaw);
+    let configStr = JSON.stringify(config, null, 2);
+    let shopCode = `<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HYPEHUNT SHOP — \${room}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"><\/script>
+    <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"><\/script>
+    <style>
+        :root {
+            --bg-dark: #0A0A0F;
+            --bg-card: rgba(22, 18, 32, 0.75);
+            --bg-card-solid: #161220;
+            --purple-primary: #A855F7;
+            --purple-deep: #7C3AED;
+            --neon-lime: #BFFF00;
+            --hot-pink: #FF2D78;
+            --text-primary: #F0EBF8;
+            --text-secondary: #9B8FBA;
+            --text-muted: #6B5F85;
+            --border: rgba(168, 85, 247, 0.15);
+            --border-hover: rgba(168, 85, 247, 0.4);
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --radius-pill: 50px;
+            --shadow-card: 0 4px 24px rgba(0,0,0,0.4), 0 0 40px rgba(168,85,247,0.06);
+            --font-display: 'Space Grotesk', 'Kanit', sans-serif;
+            --font-body: 'Kanit', 'Space Grotesk', sans-serif;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px 10px;
+            position: relative;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+        .container {
+            max-width: 820px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        .logo {
+            font-family: var(--font-display);
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .logo .hype {
+            background: linear-gradient(135deg, var(--purple-primary), var(--hot-pink));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .logo .hunt {
+            background: linear-gradient(135deg, var(--neon-lime), #7CFF3F);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .room-badge {
+            display: inline-block;
+            font-family: var(--font-display);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            background: var(--bg-card-solid);
+            border: 1px solid var(--border);
+            padding: 5px 14px;
+            border-radius: var(--radius-pill);
+            color: var(--neon-lime);
+        }
+        .catalog-title {
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .catalog-title::before {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--neon-lime);
+            box-shadow: 0 0 10px var(--neon-lime);
+            animation: pulse-dot 2s infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.4); opacity: 1; }
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 16px;
+        }
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+            transition: all var(--transition);
+            display: flex;
+            flex-direction: column;
+        }
+        .card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-2px);
+        }
+        .img-wrap {
+            position: relative;
+            width: 100%;
+            padding-bottom: 100%; /* 1:1 Aspect Ratio */
+            background: var(--bg-card-solid);
+            overflow: hidden;
+        }
+        .img-wrap img {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover;
+        }
+        .img-placeholder {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg, #100B1A, #1C122C);
+        }
+        .img-placeholder svg {
+            width: 48px;
+            height: 48px;
+            stroke: var(--purple-primary);
+            opacity: 0.4;
+            margin-bottom: 8px;
+        }
+        .tag-row {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .tag {
+            background: rgba(10, 10, 15, 0.85);
+            backdrop-filter: blur(4px);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-size: 11px;
+            font-weight: 500;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .price-tag {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(135deg, var(--purple-deep), var(--hot-pink));
+            color: white;
+            font-family: var(--font-display);
+            font-weight: 700;
+            font-size: 14px;
+            padding: 4px 12px;
+            border-radius: var(--radius-pill);
+            box-shadow: 0 4px 12px rgba(255, 45, 120, 0.3);
+        }
+        .card-body {
+            padding: 16px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .brand {
+            font-family: var(--font-display);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--neon-lime);
+            margin-bottom: 4px;
+        }
+        .title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            line-height: 1.3;
+        }
+        .specs {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            flex-grow: 1;
+        }
+        .spec-item {
+            margin-bottom: 4px;
+        }
+        .buy-btn {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, var(--purple-deep), var(--purple-primary));
+            border: none;
+            color: white;
+            font-family: var(--font-body);
+            font-weight: 600;
+            font-size: 13px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition);
+            text-align: center;
+            text-decoration: none;
+            display: block;
+        }
+        .buy-btn:hover {
+            box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
+            transform: translateY(-1px);
+        }
+        .no-items {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px 20px;
+            background: var(--bg-card);
+            border: 1px dashed var(--border);
+            border-radius: var(--radius-lg);
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div class="logo"><span class="hype">HYPE</span><span class="hunt">HUNT</span></div>
+        <div class="room-badge">STORE: \${room}</div>
+    </header>
+
+    <main>
+        <h3 class="catalog-title">สินค้าพร้อมส่ง (Live Catalog)</h3>
+        <div class="grid" id="catalogGrid">
+            <div class="no-items">⏳ กำลังโหลดสินค้าจากระบบ...</div>
+        </div>
+    </main>
+</div>
+
+<script>
+    const firebaseConfig = ${configStr};
+    
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const roomId = "\${room}";
+    
+    db.collection('rooms').doc(roomId).collection('igPosts')
+      .where('status', '==', 'pending')
+      .onSnapshot(snap => {
+          let grid = document.getElementById('catalogGrid');
+          if (snap.empty) {
+              grid.innerHTML = '<div class="no-items">📦 ยังไม่มีสินค้าพร้อมส่งในขณะนี้</div>';
+              return;
+          }
+          
+          let html = '';
+          snap.docs.forEach(doc => {
+              let p = doc.data();
+              let title = p.title || 'เสื้อผ้าแนวสตรีท';
+              let brand = p.brand || 'No Brand';
+              let size = p.size || '-';
+              let chest = p.chest ? p.chest + '"' : '-';
+              let length = p.length ? p.length + '"' : '-';
+              let condition = p.condition || '-';
+              let flaws = p.flaws || 'ไม่มี';
+              let priceText = p.price ? p.price.toLocaleString("th-TH") + "฿" : 'สอบถามราคา';
+              
+              let imgHtml = '';
+              if (p.imgUrl && p.imgUrl.trim() !== '') {
+                  imgHtml = '<img src="' + p.imgUrl + '" alt="' + title + '" onerror="this.style.display=\\'none\\'; this.parentNode.innerHTML=\\'<div class=\\\\\\"img-placeholder\\\\\\"><svg viewBox=\\\\\\"0 0 24 24\\\\\\" fill=\\\\\\"none\\\\\\" stroke=\\\\\\"currentColor\\\\\\" stroke-width=\\\\\\"2\\\\\\"><rect x=\\\\\\"3\\\\\\" y=\\\\\\"3\\\\\\" width=\\\\\\"18\\\\\\" height=\\\\\\"18\\\\\\" rx=\\\\\\"2\\\\\\"></rect><circle cx=\\\\\\"8.5\\\\\\" cy=\\\\\\"8.5\\\\\\" r=\\\\\\"1.5\\\\\\"></circle><path d=\\\\\\"M21 15l-5-5L5 21\\\\\\"></path></svg><span>ไม่มีรูปสินค้า</span></div>\\'">';
+              } else {
+                  imgHtml = '<div class="img-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><path d="M21 15l-5-5L5 21"></path></svg><span>ไม่มีรูปสินค้า</span></div>';
+              }
+              
+              html += '<div class="card">' +
+                  '<div class="img-wrap">' +
+                      imgHtml +
+                      '<span class="price-tag">' + priceText + '</span>' +
+                      '<div class="tag-row">' +
+                          '<span class="tag">Size ' + size + '</span>' +
+                          '<span class="tag">อก ' + chest + '</span>' +
+                          '<span class="tag">ยาว ' + length + '</span>' +
+                      '</div>' +
+                  '</div>' +
+                  '<div class="card-body">' +
+                      '<div class="brand">' + brand + '</div>' +
+                      '<div class="title">' + title + '</div>' +
+                      '<div class="specs">' +
+                          '<div class="spec-item">สภาพ: ' + condition + '</div>' +
+                          '<div class="spec-item">ตำหนิ: ' + flaws + '</div>' +
+                      '</div>' +
+                      '<a href="https://line.me/ti/p/~" target="_blank" class="buy-btn" onclick="alert(\\'แคปหน้าจอนี้เพื่อสั่งซื้อกับทางร้าน\\')">🛒 สั่งซื้อสินค้า</a>' +
+                  '</div>' +
+              '</div>';
+          });
+          grid.innerHTML = html;
+      }, err => {
+          document.getElementById('catalogGrid').innerHTML = '<div class="no-items">❌ เกิดข้อผิดพลาดในการโหลดข้อมูล: ' + err.message + '</div>';
+      });
+<\/script>
+</body>
+</html>`;
+
+    let blob = new Blob([shopCode], { type: 'text/html;charset=utf-8;' });
+    let a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `shop-${room}.html`;
+    a.click();
+    showToast('🔗 ส่งออกหน้าร้านสำเร็จ! (กรุณานำไฟล์นี้ไปเปิดใช้งาน)');
 }
 async function clearAllCloud() {
     if (!confirm('⚠️ ล้างข้อมูลทั้งหมด? (ไม่สามารถกู้คืนได้)')) return;
@@ -1707,6 +2428,7 @@ window.addEventListener('DOMContentLoaded', () => {
     loadLocal();
     loadWebhookSettings();
     loadFirebaseConfig();
+    loadGumloopSettings();
 });
 </script>
 </body>
