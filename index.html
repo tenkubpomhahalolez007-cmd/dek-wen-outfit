@@ -3,150 +3,767 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Dek Wen Outfit — v20 (Clean & Inch)</title>
+    <title>HypeHunt — Street Inventory Manager</title>
+    <meta name="description" content="HypeHunt — ระบบจัดการสต๊อกเสื้อผ้าสตรีทแวร์ ล็อต ขาย สรุปยอด โพสต์ IG">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
     <style>
+        :root {
+            --bg-dark: #0A0A0F;
+            --bg-card: rgba(22, 18, 32, 0.75);
+            --bg-card-solid: #161220;
+            --bg-input: rgba(30, 24, 48, 0.9);
+            --bg-elevated: #1E1830;
+            --purple-primary: #A855F7;
+            --purple-deep: #7C3AED;
+            --purple-glow: rgba(168, 85, 247, 0.25);
+            --purple-soft: #C4A0FF;
+            --neon-lime: #BFFF00;
+            --neon-lime-glow: rgba(191, 255, 0, 0.2);
+            --hot-pink: #FF2D78;
+            --hot-pink-glow: rgba(255, 45, 120, 0.2);
+            --text-primary: #F0EBF8;
+            --text-secondary: #9B8FBA;
+            --text-muted: #6B5F85;
+            --border: rgba(168, 85, 247, 0.15);
+            --border-hover: rgba(168, 85, 247, 0.4);
+            --success: #00E676;
+            --warning: #FFD600;
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --radius-pill: 50px;
+            --shadow-card: 0 4px 24px rgba(0,0,0,0.4), 0 0 40px rgba(168,85,247,0.06);
+            --shadow-glow: 0 0 20px rgba(168,85,247,0.3);
+            --font-display: 'Space Grotesk', 'Kanit', sans-serif;
+            --font-body: 'Kanit', 'Space Grotesk', sans-serif;
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Segoe UI', system-ui, 'Kanit', sans-serif; background: #0D0A14; color: #F5F0FF; font-size: 14px; transition: background 0.2s; }
-        body.light { background: #F3EFFA; color: #1A1424; }
-        .app { max-width: 800px; margin: 0 auto; padding: 12px; }
-        .topbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 12px; border-bottom: 1px solid #2A2038; padding-bottom: 8px; }
-        .logo { font-size: 22px; font-weight: 900; background: linear-gradient(135deg, #C9A6FF, #A855F7); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
-        .ver { font-family: monospace; background: #241A33; padding: 4px 12px; border-radius: 20px; font-size: 12px; color: #C9A6FF; }
-        .nav { display: flex; gap: 6px; flex-wrap: wrap; background: #1A1424; border-radius: 14px; padding: 6px; margin-bottom: 16px; }
-        .nav button { flex: 1; padding: 8px; background: transparent; border: none; color: #A99BC4; border-radius: 8px; font-weight: 600; cursor: pointer; }
-        .nav button.active { background: linear-gradient(135deg, #7C3AED, #A855F7); color: white; box-shadow: 0 2px 8px rgba(168,85,247,0.4); }
-        .section { display: none; }
+        body {
+            font-family: var(--font-body);
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-size: 14px;
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: background var(--transition), color var(--transition);
+        }
+        /* Subtle noise texture overlay */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+        /* Ambient glow blobs */
+        body::after {
+            content: '';
+            position: fixed;
+            top: -200px; right: -200px;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(168,85,247,0.08) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        /* Light theme */
+        body.light {
+            --bg-dark: #F5F0FF;
+            --bg-card: rgba(255, 255, 255, 0.85);
+            --bg-card-solid: #FFFFFF;
+            --bg-input: rgba(240, 235, 248, 0.95);
+            --bg-elevated: #EDE5F8;
+            --text-primary: #1A1028;
+            --text-secondary: #6B5F85;
+            --text-muted: #9B8FBA;
+            --border: rgba(168, 85, 247, 0.2);
+            --border-hover: rgba(168, 85, 247, 0.5);
+            --shadow-card: 0 4px 24px rgba(100,60,180,0.1), 0 0 40px rgba(168,85,247,0.04);
+        }
+        .app {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 16px;
+            position: relative;
+            z-index: 1;
+        }
+        /* ===== TOPBAR ===== */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .logo {
+            font-family: var(--font-display);
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            text-transform: uppercase;
+            position: relative;
+        }
+        .logo .hype {
+            background: linear-gradient(135deg, var(--purple-primary), var(--hot-pink));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .logo .hunt {
+            background: linear-gradient(135deg, var(--neon-lime), #7CFF3F);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .logo::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--purple-primary), var(--neon-lime), transparent);
+            border-radius: 2px;
+        }
+        .topbar-right {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .ver-badge {
+            font-family: var(--font-display);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            padding: 5px 14px;
+            border-radius: var(--radius-pill);
+            color: var(--neon-lime);
+        }
+        .theme-toggle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            transition: all var(--transition);
+        }
+        .theme-toggle:hover {
+            border-color: var(--purple-primary);
+            box-shadow: var(--shadow-glow);
+            transform: rotate(15deg);
+        }
+        /* ===== NAVIGATION ===== */
+        .nav {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 5px;
+            margin-bottom: 20px;
+        }
+        .nav button {
+            flex: 1;
+            min-width: 80px;
+            padding: 10px 6px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            border-radius: var(--radius-md);
+            font-family: var(--font-body);
+            font-weight: 500;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        .nav button:hover {
+            color: var(--text-primary);
+            background: rgba(168, 85, 247, 0.08);
+        }
+        .nav button.active {
+            background: linear-gradient(135deg, var(--purple-deep), var(--purple-primary));
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 16px rgba(168, 85, 247, 0.35);
+        }
+        .nav button.active::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.1));
+            border-radius: inherit;
+        }
+        /* ===== SECTIONS ===== */
+        .section { display: none; animation: fadeSlideIn 0.35s ease; }
         .section.active { display: block; }
-        .card { background: #1A1424; border: 1px solid #2A2038; border-radius: 14px; padding: 1rem; margin-bottom: 12px; position: relative; }
-        .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, #A855F7, transparent); border-radius: 14px 14px 0 0; }
-        .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px,1fr)); gap: 8px; margin-bottom: 12px; }
-        .stat { background: #241A33; border-radius: 12px; padding: 10px; border-left: 4px solid #A855F7; }
-        .stat-label { font-size: 11px; color: #A99BC4; text-transform: uppercase; }
-        .stat-val { font-size: 20px; font-weight: 700; font-family: monospace; }
-        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-        input, select, textarea { width: 100%; padding: 8px; background: #241A33; border: 1px solid #3A2D52; border-radius: 8px; color: white; }
-        .btn { padding: 8px 16px; border-radius: 8px; background: #2A2038; border: none; color: white; font-weight: 600; cursor: pointer; }
-        .btn-primary { background: linear-gradient(135deg, #7C3AED, #A855F7); }
-        .btn-danger { background: #FF5C7A; color: #1A1424; }
-        .btn-sm { padding: 4px 12px; font-size: 12px; }
-        .info-box { background: rgba(168,85,247,0.2); border-left: 4px solid #A855F7; padding: 8px; margin-bottom: 8px; border-radius: 8px; }
-        .warning-box { background: rgba(255,193,7,0.2); border-left-color: #FFC107; }
-        .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #D6FF3D; color: #000; padding: 6px 16px; border-radius: 30px; font-size: 13px; z-index: 999; }
-        .badge { padding: 2px 8px; border-radius: 20px; font-size: 11px; background: #3A2D52; }
-        .room-setup { background: #241A33; border-radius: 12px; padding: 10px; margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
-        .migrate-bar { background: #2A2038; border: 1px solid #FFC107; border-radius: 8px; padding: 8px; margin: 8px 0; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
-        .status-badge { font-size: 11px; padding: 2px 8px; border-radius: 20px; background: #3A2D52; }
-        .online-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #4CAF50; margin-right: 4px; }
-        .offline-dot { background: #FF5C7A; }
-        .edit-modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* ===== CARDS ===== */
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            margin-bottom: 14px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-card);
+            transition: border-color var(--transition), box-shadow var(--transition);
+        }
+        .card:hover {
+            border-color: var(--border-hover);
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--purple-primary), var(--neon-lime), transparent);
+            opacity: 0.7;
+        }
+        .card h3 {
+            font-family: var(--font-display);
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        /* ===== STAT GRID ===== */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .stat {
+            background: var(--bg-elevated);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            border-left: 3px solid var(--purple-primary);
+            position: relative;
+            overflow: hidden;
+            transition: transform var(--transition), box-shadow var(--transition);
+        }
+        .stat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(168, 85, 247, 0.15);
+        }
+        .stat:nth-child(2) { border-left-color: var(--neon-lime); }
+        .stat:nth-child(3) { border-left-color: var(--hot-pink); }
+        .stat:nth-child(4) { border-left-color: var(--warning); }
+        .stat:nth-child(5) { border-left-color: var(--purple-soft); }
+        .stat:nth-child(6) { border-left-color: var(--success); }
+        .stat::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 60px; height: 60px;
+            background: radial-gradient(circle, var(--purple-glow), transparent);
+            opacity: 0.4;
+        }
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .stat-val {
+            font-family: var(--font-display);
+            font-size: 22px;
+            font-weight: 700;
+        }
+        /* ===== FORMS ===== */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-size: 14px;
+            transition: all var(--transition);
+            outline: none;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--purple-primary);
+            box-shadow: 0 0 0 3px var(--purple-glow);
+        }
+        input::placeholder, textarea::placeholder {
+            color: var(--text-muted);
+        }
+        label {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+            display: inline-block;
+        }
+        /* ===== BUTTONS ===== */
+        .btn {
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+        .btn:active { transform: translateY(0); }
+        .btn-primary {
+            background: linear-gradient(135deg, var(--purple-deep), var(--purple-primary));
+            border: none;
+            color: white;
+        }
+        .btn-primary:hover {
+            box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
+        }
+        .btn-lime {
+            background: linear-gradient(135deg, #8BC900, var(--neon-lime));
+            border: none;
+            color: #0A0A0F;
+        }
+        .btn-lime:hover {
+            box-shadow: 0 4px 20px var(--neon-lime-glow);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #CC1654, var(--hot-pink));
+            border: none;
+            color: white;
+        }
+        .btn-danger:hover {
+            box-shadow: 0 4px 20px var(--hot-pink-glow);
+        }
+        .btn-sm { padding: 6px 14px; font-size: 12px; }
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--border);
+        }
+        .btn-ghost:hover {
+            border-color: var(--purple-primary);
+            background: var(--purple-glow);
+        }
+        /* ===== INFO BOXES ===== */
+        .info-box {
+            background: var(--purple-glow);
+            border-left: 3px solid var(--purple-primary);
+            padding: 10px 14px;
+            margin-bottom: 10px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+        }
+        .warning-box {
+            background: rgba(255, 214, 0, 0.12);
+            border-left-color: var(--warning);
+        }
+        .cat-warning {
+            background: var(--hot-pink-glow);
+            border-left: 3px solid var(--hot-pink);
+            padding: 10px 14px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+        /* ===== BADGES ===== */
+        .badge {
+            padding: 3px 10px;
+            border-radius: var(--radius-pill);
+            font-size: 11px;
+            font-weight: 500;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .status-badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: var(--radius-pill);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            letter-spacing: 0.5px;
+        }
+        .online-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            margin-right: 4px;
+            animation: pulse-dot 2s infinite;
+        }
+        @keyframes pulse-dot {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.4); }
+            50% { box-shadow: 0 0 0 6px rgba(0, 230, 118, 0); }
+        }
+        .offline-dot { background: var(--hot-pink); animation: none; }
+        /* ===== ROOM SETUP ===== */
+        .room-setup {
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            font-size: 13px;
+        }
+        .room-setup input {
+            width: 170px;
+            padding: 7px 12px;
+            font-size: 13px;
+        }
+        .migrate-bar {
+            background: rgba(255, 214, 0, 0.08);
+            border: 1px solid rgba(255, 214, 0, 0.25);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 13px;
+        }
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(0);
+            background: var(--neon-lime);
+            color: #0A0A0F;
+            padding: 8px 24px;
+            border-radius: var(--radius-pill);
+            font-size: 13px;
+            font-weight: 600;
+            z-index: 9999;
+            box-shadow: 0 4px 24px rgba(191, 255, 0, 0.3);
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 1.7s;
+        }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+        @keyframes toastOut {
+            from { opacity: 1; }
+            to { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+        }
+        /* ===== MODALS ===== */
+        .edit-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
         .edit-modal.open { display: flex; }
-        .edit-modal-inner { background: #1A1424; border: 1px solid #3A2D52; border-radius: 14px; padding: 20px; width: 90%; max-width: 480px; max-height: 90vh; overflow-y: auto; }
-        .pagination { display: flex; gap: 6px; align-items: center; justify-content: center; margin-top: 8px; flex-wrap: wrap; }
-        .page-btn { padding: 4px 10px; border-radius: 6px; background: #241A33; border: 1px solid #3A2D52; color: white; cursor: pointer; font-size: 12px; }
-        .page-btn.active { background: #A855F7; border-color: #A855F7; }
-        .qr-canvas-wrap { text-align: center; margin-top: 8px; }
-        body.light input, body.light select, body.light textarea { background: #E8E0F5; color: #1A1424; border-color: #C9A6FF; }
-        body.light .card { background: #EDE8F7; border-color: #C9A6FF; }
-        body.light .stat { background: #E0D8F0; }
-        body.light .nav { background: #E0D8F0; }
-        body.light .room-setup { background: #E0D8F0; }
-        body.light .badge { background: #C9A6FF; color: #1A1424; }
-        body.light .btn { background: #C9A6FF; color: #1A1424; }
-        .ig-field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-        .cat-warning { background: #FF5C7A22; border-left: 4px solid #FF5C7A; padding: 6px; border-radius: 6px; margin-bottom: 8px; font-size: 13px; }
+        .edit-modal-inner {
+            background: var(--bg-card-solid);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            width: 92%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 0 60px rgba(168,85,247,0.1);
+            animation: modalIn 0.3s ease;
+        }
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .edit-modal-inner h3 {
+            font-family: var(--font-display);
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        /* ===== PAGINATION ===== */
+        .pagination {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            justify-content: center;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .page-btn {
+            padding: 6px 12px;
+            border-radius: var(--radius-sm);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 12px;
+            font-family: var(--font-display);
+            font-weight: 600;
+            transition: all var(--transition);
+        }
+        .page-btn:hover { border-color: var(--purple-primary); }
+        .page-btn.active {
+            background: var(--purple-primary);
+            border-color: var(--purple-primary);
+            color: white;
+        }
+        /* ===== IG POST FIELDS ===== */
+        .ig-field-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        /* ===== LOT ITEM ===== */
+        .lot-item {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            padding: 14px;
+            margin-bottom: 10px;
+            transition: all var(--transition);
+        }
+        .lot-item:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(168,85,247,0.1);
+        }
+        .lot-item .lot-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 6px;
+        }
+        .lot-item .lot-name {
+            font-family: var(--font-display);
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .lot-item .lot-meta {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .lot-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        /* ===== SALE ITEM ===== */
+        .sale-item {
+            border-bottom: 1px solid var(--border);
+            padding: 10px 0;
+            transition: background var(--transition);
+        }
+        .sale-item:last-child { border-bottom: none; }
+        .sale-item:hover { background: rgba(168, 85, 247, 0.04); }
+        .sale-item .sale-header {
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        .sale-item .sale-profit {
+            font-family: var(--font-display);
+            font-weight: 600;
+        }
+        .profit-positive { color: var(--success); }
+        .profit-negative { color: var(--hot-pink); }
+        /* ===== CHARTS ===== */
+        .card canvas { max-height: 200px; }
+        /* ===== QR ===== */
+        .qr-canvas-wrap { text-align: center; margin-top: 12px; }
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--purple-deep); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--purple-primary); }
+        /* ===== CHECKBOX CUSTOM ===== */
+        input[type="checkbox"] {
+            width: auto;
+            accent-color: var(--purple-primary);
+            cursor: pointer;
+        }
+        /* ===== HR ===== */
+        hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 14px 0;
+        }
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 600px) {
+            .app { padding: 10px; }
+            .logo { font-size: 22px; }
+            .form-row { grid-template-columns: 1fr; }
+            .ig-field-grid { grid-template-columns: 1fr; }
+            .stat-grid { grid-template-columns: repeat(2, 1fr); }
+            .nav button { min-width: 60px; font-size: 12px; padding: 8px 4px; }
+        }
+        /* ===== SELECTION ===== */
+        ::selection {
+            background: var(--purple-primary);
+            color: white;
+        }
+        /* ===== STREET TAG DECORATION ===== */
+        .street-tag {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--purple-deep), var(--hot-pink));
+            color: white;
+            font-family: var(--font-display);
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 3px 10px;
+            border-radius: 4px;
+            transform: rotate(-2deg);
+        }
     </style>
 </head>
 <body>
 <div class="app">
+    <!-- ===== TOPBAR ===== -->
     <div class="topbar">
-        <div class="logo">DEK WEN OUTFIT</div>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        <div class="logo"><span class="hype">HYPE</span><span class="hunt">HUNT</span></div>
+        <div class="topbar-right">
             <span id="onlineStatus" style="font-size:12px;"><span class="online-dot"></span>Online</span>
-            <div class="ver">v20 ✅ Clean + Inch</div>
-            <button class="btn btn-sm" onclick="toggleTheme()" style="padding:4px 10px;">🌙</button>
+            <div class="ver-badge">v21 street</div>
+            <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button>
         </div>
     </div>
+    <!-- ===== NAVIGATION ===== -->
     <div class="nav">
         <button class="active" onclick="showTab(event, 'home')">🏠 หน้าแรก</button>
         <button onclick="showTab(event, 'lot')">📦 ล็อต</button>
         <button onclick="showTab(event, 'sell')">💰 ขาย</button>
         <button onclick="showTab(event, 'summary')">📊 สรุป</button>
-        <button onclick="showTab(event, 'igposts')">📋 โพสต์ไอจี</button>
+        <button onclick="showTab(event, 'igposts')">📋 IG โพสต์</button>
         <button onclick="showTab(event, 'settings')">⚙️ ตั้งค่า</button>
     </div>
-
-    <!-- Room setup bar -->
+    <!-- ===== ROOM SETUP ===== -->
     <div class="room-setup">
         <span>🔑 รหัสกลุ่ม:</span>
-        <input type="text" id="roomIdInput" placeholder="เช่น dekwenA1" style="width: 160px;">
+        <input type="text" id="roomIdInput" placeholder="เช่น hypehunt-crew">
         <button class="btn btn-sm btn-primary" onclick="joinRoomConfirm()">เข้ากลุ่ม</button>
-        <div id="roomStatus" style="font-size: 12px;">⚠️ ยังไม่ได้เชื่อมต่อ</div>
+        <div id="roomStatus" style="font-size: 12px; color: var(--warning);">⚠️ ยังไม่ได้เชื่อมต่อ</div>
         <span id="dataSourceBadge" class="status-badge">📍 Local</span>
     </div>
     <div id="migrateBar" style="display:none;" class="migrate-bar">
         <span>📦 พบข้อมูลในเครื่อง ยังไม่ได้อัปโหลดขึ้นคลาวด์</span>
-        <button class="btn btn-sm btn-primary" onclick="migrateLocalToCloud()">☁️ อัปโหลดขึ้นคลาวด์</button>
+        <button class="btn btn-sm btn-lime" onclick="migrateLocalToCloud()">☁️ อัปโหลดขึ้นคลาวด์</button>
     </div>
-
-    <!-- หน้าแรก -->
+    <!-- ===== หน้าแรก ===== -->
     <div id="home" class="section active">
         <div id="alertArea"></div>
         <div class="stat-grid" id="statsGrid"></div>
-        <div class="card"><h3>ล็อตล่าสุด</h3><div id="recentLots"></div></div>
+        <div class="card"><h3>📦 ล็อตล่าสุด</h3><div id="recentLots"></div></div>
     </div>
-
-    <!-- ล็อต -->
+    <!-- ===== ล็อต ===== -->
     <div id="lot" class="section">
         <div class="card">
+            <h3>➕ เพิ่มล็อตใหม่</h3>
             <div class="form-row"><input id="lotName" placeholder="ชื่อล็อต"><input id="lotTotal" type="number" placeholder="จำนวนเสื้อทั้งหมด"></div>
             <div class="form-row"><input id="lotCost" type="number" placeholder="ราคาซื้อ (฿)"><input id="lotShip" type="number" placeholder="ค่าขนส่ง"></div>
             <div class="form-row"><input id="lotPack" type="number" placeholder="ค่าบรรจุ"><input id="lotWeight" type="number" placeholder="น้ำหนัก (กก.)"></div>
-            <div><label>หมวดเสื้อในล็อตนี้</label><div id="shirtCats"></div></div>
+            <div style="margin-bottom: 10px;"><label>หมวดเสื้อในล็อตนี้</label><div id="shirtCats" style="margin-top:6px;display:flex;flex-wrap:wrap;gap:8px;"></div></div>
             <button class="btn btn-primary" onclick="addLot()">➕ เพิ่มล็อต</button>
         </div>
         <div class="card"><h3>🔍 ค้นหาล็อต</h3><input type="text" id="searchLot" placeholder="พิมพ์ชื่อล็อต..." oninput="renderLots()"></div>
         <div id="lotList"></div>
     </div>
-
-    <!-- ขาย -->
+    <!-- ===== ขาย ===== -->
     <div id="sell" class="section">
         <div class="card">
+            <h3>💸 บันทึกการขาย</h3>
             <div class="form-row"><select id="sellLot" onchange="updateShirtSelect()"></select><select id="sellShirt"></select></div>
             <div class="form-row"><input id="sellQty" type="number" value="1" oninput="previewProfit()"><input id="sellPrice" type="number" placeholder="ราคา/ตัว" oninput="previewProfit()"></div>
-            <div class="form-row"><input id="customerName" placeholder="ชื่อลูกค้า"><input id="customerContact" placeholder="@line/ig"></div>
-            <div><input id="extraDetails" placeholder="ไซส์/แบรนด์/สภาพ"></div>
+            <div class="form-row"><input id="customerName" placeholder="ชื่อลูกค้า"><input id="customerContact" placeholder="@line / IG"></div>
+            <div style="margin-bottom:10px;"><input id="extraDetails" placeholder="ไซส์ / แบรนด์ / สภาพ"></div>
             <div id="sellCostPreview"></div><div id="profitPreview"></div>
-            <button class="btn btn-primary" onclick="addSale()">✅ บันทึกการขาย</button>
-            <hr><button class="btn" onclick="openScanner()">📷 สแกน QR (ล็อต)</button>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn btn-primary" onclick="addSale()">✅ บันทึกการขาย</button>
+                <button class="btn btn-ghost" onclick="openScanner()">📷 สแกน QR</button>
+            </div>
             <div id="qrReader" style="display:none; margin-top:8px;"></div>
         </div>
         <div class="card">
-            <h3>ประวัติการขาย</h3>
+            <h3>📜 ประวัติการขาย</h3>
             <div class="form-row" style="margin-bottom:8px;">
-                <input type="date" id="filterDateFrom" placeholder="จากวันที่" oninput="renderSales()">
-                <input type="date" id="filterDateTo" placeholder="ถึงวันที่" oninput="renderSales()">
+                <input type="date" id="filterDateFrom" oninput="renderSales()">
+                <input type="date" id="filterDateTo" oninput="renderSales()">
             </div>
-            <input type="text" id="filterCustomer" placeholder="🔍 ค้นหาชื่อลูกค้า..." oninput="renderSales()" style="margin-bottom:8px;">
+            <input type="text" id="filterCustomer" placeholder="🔍 ค้นหาชื่อลูกค้า..." oninput="renderSales()" style="margin-bottom:10px;">
             <div id="saleList"></div>
             <div class="pagination" id="salePagination"></div>
         </div>
     </div>
-
-    <!-- สรุป -->
+    <!-- ===== สรุป ===== -->
     <div id="summary" class="section">
         <div id="summaryContent"></div>
-        <div class="card"><canvas id="dailyChart" width="400" height="180"></canvas></div>
-        <div class="card"><canvas id="catChart" width="400" height="180"></canvas></div>
+        <div class="card"><h3>📈 รายได้ 7 วันล่าสุด</h3><canvas id="dailyChart" width="400" height="180"></canvas></div>
+        <div class="card"><h3>📊 กำไรตามหมวด</h3><canvas id="catChart" width="400" height="180"></canvas></div>
     </div>
-
-    <!-- โพสต์ไอจี (หน่วยนิ้ว) -->
+    <!-- ===== IG โพสต์ (หน่วยนิ้ว) ===== -->
     <div id="igposts" class="section">
         <div class="card">
-            <h3>✏️ สร้างโพสต์ (หน่วยนิ้ว)</h3>
+            <h3>✏️ สร้างโพสต์ IG <span class="street-tag">inch</span></h3>
             <div class="ig-field-grid">
                 <input id="igBrand" placeholder="แบรนด์">
                 <input id="igSize" placeholder="Size">
@@ -156,8 +773,8 @@
                 <input id="igFlaws" placeholder="ตำหนิ (ถ้ามี)">
                 <input id="igPrice" type="number" placeholder="Price (บาท)">
             </div>
-            <div style="margin-top:8px;">
-                <label>📝 เทมเพลต (แก้ไขได้ ใช้ {แบรนด์} {Size} {อก} {ยาว} {สภาพ} {ตำหนิ} {Price})</label>
+            <div style="margin-top:10px;">
+                <label>📝 เทมเพลต (แก้ไขได้ — ใช้ {แบรนด์} {Size} {อก} {ยาว} {สภาพ} {ตำหนิ} {Price})</label>
                 <textarea id="igTemplate" rows="6">แบรนด์ {แบรนด์}
 Size : {Size}
 อก : {อก} นิ้ว
@@ -170,57 +787,67 @@ Price : {Price} บาท
 สนใจสินค้าเม้นใต้โพสต์ หรือ DMมาสอบถามได้
 ดีเทลอาจจะคลาดเคลื่อน 0.5+</textarea>
             </div>
-            <div style="display:flex; gap:8px; margin: 8px 0;">
+            <div style="display:flex; gap:8px; margin: 10px 0;">
                 <button class="btn btn-primary" onclick="applyIgTemplate()">✨ แปลงเป็นโพสต์</button>
-                <button class="btn" onclick="resetIgTemplate()">🔄 คืนค่าเทมเพลต</button>
+                <button class="btn btn-ghost" onclick="resetIgTemplate()">🔄 คืนค่าเทมเพลต</button>
             </div>
             <div>
                 <label>📄 ข้อความโพสต์ (แก้ไขได้)</label>
-                <textarea id="igContent" rows="4" placeholder="ข้อความที่ได้"></textarea>
+                <textarea id="igContent" rows="4" placeholder="ข้อความที่ได้จะแสดงตรงนี้..."></textarea>
             </div>
-            <div class="form-row" style="margin-top:8px;">
-                <input id="igTitle" placeholder="ชื่อโพสต์ (เช่น Nike hoodie)">
+            <div style="margin: 10px 0;">
+                <input id="igTitle" placeholder="ชื่อโพสต์ เช่น Nike Hoodie Vintage" style="width:100%;">
             </div>
-            <button class="btn btn-primary" onclick="addIgPost()">💾 บันทึกโพสต์ (รอลง)</button>
+            <button class="btn btn-lime" onclick="addIgPost()">💾 บันทึกโพสต์ (รอลง)</button>
         </div>
-        <div><h3>⏳ รอลง</h3><div id="igPending"></div></div>
-        <div><h3>✅ ลงแล้ว</h3><div id="igPosted"></div></div>
+        <div class="card"><h3>⏳ รอลง</h3><div id="igPending"></div></div>
+        <div class="card"><h3>✅ ลงแล้ว</h3><div id="igPosted"></div></div>
     </div>
-
-    <!-- ตั้งค่า -->
+    <!-- ===== ตั้งค่า ===== -->
     <div id="settings" class="section">
         <div class="card">
             <h3>☁️ Firebase Config</h3>
-            <textarea id="firebaseConfigInput" rows="6" style="font-family: monospace;"></textarea>
-            <button class="btn btn-primary" onclick="testAndSaveConfig()">💾 ทดสอบและบันทึก Config</button>
-            <div id="configTestResult" class="info-box" style="margin-top:8px;"></div>
+            <textarea id="firebaseConfigInput" rows="6" style="font-family: 'Space Grotesk', monospace; font-size: 12px;"></textarea>
+            <div style="margin-top:10px;">
+                <button class="btn btn-primary" onclick="testAndSaveConfig()">💾 ทดสอบและบันทึก</button>
+            </div>
+            <div id="configTestResult" class="info-box" style="margin-top:10px;"></div>
         </div>
         <div class="card">
             <h3>🤖 Discord Webhook</h3>
-            <input type="text" id="webhookUrl" placeholder="https://discord.com/api/webhooks/...">
-            <div><label><input type="checkbox" id="notifySale" checked> แจ้งขาย</label></div>
-            <div><label><input type="checkbox" id="notifyLot" checked> แจ้งเพิ่มล็อต</label></div>
-            <div><label><input type="checkbox" id="notifyStale" checked> แจ้งสินค้าค้าง</label></div>
-            <div style="display:flex;gap:8px;margin-top:8px;">
+            <input type="text" id="webhookUrl" placeholder="https://discord.com/api/webhooks/..." style="margin-bottom:8px;">
+            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
+                <label><input type="checkbox" id="notifySale" checked> แจ้งเตือนเมื่อขาย</label>
+                <label><input type="checkbox" id="notifyLot" checked> แจ้งเตือนเมื่อเพิ่มล็อต</label>
+                <label><input type="checkbox" id="notifyStale" checked> แจ้งเตือนสินค้าค้างสต๊อก</label>
+            </div>
+            <div style="display:flex;gap:8px;">
                 <button class="btn btn-sm btn-primary" onclick="saveWebhookSettings()">💾 บันทึก Webhook</button>
-                <button class="btn btn-sm" onclick="testWebhook()">ทดสอบ Discord</button>
+                <button class="btn btn-sm btn-ghost" onclick="testWebhook()">🧪 ทดสอบ</button>
             </div>
         </div>
         <div class="card">
-            <h3>หมวดเสื้อ <span style="font-size:12px;color:#A99BC4;">(คลิกปุ่มรีเซ็ตถ้ามีข้อมูลแปลก)</span></h3>
+            <h3>🏷️ หมวดเสื้อ</h3>
             <div id="catManage"></div>
-            <div class="form-row" style="margin-top:8px;">
-                <input id="newCat" placeholder="หมวดใหม่">
-                <button class="btn btn-sm" onclick="addCategory()">เพิ่ม</button>
+            <div class="form-row" style="margin-top:10px;">
+                <input id="newCat" placeholder="ชื่อหมวดใหม่">
+                <button class="btn btn-sm btn-primary" onclick="addCategory()">เพิ่ม</button>
             </div>
-            <button class="btn btn-sm btn-danger" onclick="resetCategories()" style="margin-top:6px;">🔄 รีเซ็ตหมวดหมู่เป็นค่าเริ่มต้น</button>
+            <button class="btn btn-sm btn-danger" onclick="resetCategories()" style="margin-top:8px;">🔄 รีเซ็ตเป็นค่าเริ่มต้น</button>
         </div>
-        <div class="card"><button class="btn" onclick="exportCloudData()">📥 Export JSON</button> <button class="btn" onclick="exportCSV()">📊 Export CSV</button></div>
-        <div class="card"><button class="btn btn-danger" onclick="clearAllCloud()">⚠️ ล้างข้อมูลทั้งหมดในกลุ่ม</button></div>
+        <div class="card">
+            <h3>💾 จัดการข้อมูล</h3>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn btn-ghost" onclick="exportCloudData()">📥 Export JSON</button>
+                <button class="btn btn-ghost" onclick="exportCSV()">📊 Export CSV</button>
+            </div>
+        </div>
+        <div class="card">
+            <button class="btn btn-danger" onclick="clearAllCloud()">⚠️ ล้างข้อมูลทั้งหมดในกลุ่ม</button>
+        </div>
     </div>
 </div>
-
-<!-- Edit Lot Modal -->
+<!-- ===== EDIT LOT MODAL ===== -->
 <div class="edit-modal" id="editLotModal">
     <div class="edit-modal-inner">
         <h3>✏️ แก้ไขล็อต</h3>
@@ -228,43 +855,43 @@ Price : {Price} บาท
         <div class="form-row"><input id="editLotName" placeholder="ชื่อล็อต"><input id="editLotTotal" type="number" placeholder="จำนวนเสื้อ"></div>
         <div class="form-row"><input id="editLotCost" type="number" placeholder="ราคาซื้อ"><input id="editLotShip" type="number" placeholder="ค่าขนส่ง"></div>
         <div class="form-row"><input id="editLotPack" type="number" placeholder="ค่าบรรจุ"><input id="editLotWeight" type="number" placeholder="น้ำหนัก"></div>
-        <div style="display:flex;gap:8px;margin-top:8px;">
+        <div style="display:flex;gap:8px;margin-top:12px;">
             <button class="btn btn-primary" onclick="saveEditLot()">💾 บันทึก</button>
-            <button class="btn" onclick="closeModal('editLotModal')">ยกเลิก</button>
+            <button class="btn btn-ghost" onclick="closeModal('editLotModal')">ยกเลิก</button>
         </div>
     </div>
 </div>
-<!-- Edit Sale Modal -->
+<!-- ===== EDIT SALE MODAL ===== -->
 <div class="edit-modal" id="editSaleModal">
     <div class="edit-modal-inner">
         <h3>✏️ แก้ไขรายการขาย</h3>
         <input type="hidden" id="editSaleId">
         <div class="form-row"><input id="editSaleQty" type="number" placeholder="จำนวน"><input id="editSalePrice" type="number" placeholder="ราคา/ตัว"></div>
         <div class="form-row"><input id="editSaleCustomer" placeholder="ชื่อลูกค้า"><input id="editSaleContact" placeholder="@line/ig"></div>
-        <input id="editSaleDetails" placeholder="ไซส์/แบรนด์/สภาพ" style="margin-bottom:8px;width:100%;">
+        <input id="editSaleDetails" placeholder="ไซส์/แบรนด์/สภาพ" style="margin-bottom:10px;width:100%;">
         <div style="display:flex;gap:8px;">
             <button class="btn btn-primary" onclick="saveEditSale()">💾 บันทึก</button>
-            <button class="btn" onclick="closeModal('editSaleModal')">ยกเลิก</button>
+            <button class="btn btn-ghost" onclick="closeModal('editSaleModal')">ยกเลิก</button>
         </div>
     </div>
 </div>
-<!-- QR Modal -->
+<!-- ===== QR MODAL ===== -->
 <div class="edit-modal" id="qrModal">
     <div class="edit-modal-inner" style="text-align:center;">
         <h3 id="qrModalTitle">QR Code ล็อต</h3>
         <div class="qr-canvas-wrap"><canvas id="qrCanvas" width="200" height="200"></canvas></div>
-        <p id="qrModalSub" style="margin-top:8px;font-size:12px;color:#A99BC4;"></p>
-        <div style="display:flex;gap:8px;justify-content:center;margin-top:8px;">
+        <p id="qrModalSub" style="margin-top:8px;font-size:12px;color:var(--text-muted);"></p>
+        <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;">
             <button class="btn btn-primary" onclick="downloadQR()">💾 บันทึกรูป</button>
-            <button class="btn" onclick="closeModal('qrModal')">ปิด</button>
+            <button class="btn btn-ghost" onclick="closeModal('qrModal')">ปิด</button>
         </div>
     </div>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script>
-// --------------------------------------------------------------
+// ==============================================================
 // GLOBALS & HELPERS
-// --------------------------------------------------------------
+// ==============================================================
 let DB = { lots: [], sales: [], categories: [], igPosts: [] };
 let firestore = null;
 let currentRoom = null;
@@ -276,63 +903,68 @@ let isSyncing = false;
 let salePage = 1;
 const SALE_PAGE_SIZE = 20;
 const DEFAULT_CATS = ["เสื้อยืดคอกลม","เสื้อโปโล","เสื้อฮู้ด","เสื้อแจ็คเก็ต","เสื้อวินเทจ","แบรนด์เนม"];
-
 function fmt(n) { return Math.round(n).toLocaleString('th-TH') + '฿'; }
 function fmtN(n) { return Math.round(n).toLocaleString('th-TH'); }
-function cpu(lot) { return (lot.cost+lot.ship+lot.pack)/(lot.totalShirts||1); }
-function soldOf(lotId) { return DB.sales.filter(s=>s.lotId===lotId).reduce((a,s)=>a+s.qty,0); }
-function revenueOf(lotId) { return DB.sales.filter(s=>s.lotId===lotId).reduce((a,s)=>a+s.qty*s.price,0); }
-function showToast(msg) { let t=document.createElement('div'); t.className='toast'; t.innerText=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),2000); }
-
-// --------------------------------------------------------------
-// SANITIZE DATA (ป้องกันข้อมูลเสียแบบจีน)
-// --------------------------------------------------------------
+function cpu(lot) { return (lot.cost + lot.ship + lot.pack) / (lot.totalShirts || 1); }
+function soldOf(lotId) { return DB.sales.filter(s => s.lotId === lotId).reduce((a, s) => a + s.qty, 0); }
+function revenueOf(lotId) { return DB.sales.filter(s => s.lotId === lotId).reduce((a, s) => a + s.qty * s.price, 0); }
+function showToast(msg) {
+    let t = document.createElement('div');
+    t.className = 'toast';
+    t.innerText = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 2000);
+}
+// ==============================================================
+// TAB / THEME / MODALS
+// ==============================================================
+function showTab(event, tabId) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById(tabId).classList.add('active');
+    if (event?.target) event.target.classList.add('active');
+    if (tabId === 'summary') { renderSummary(); renderCharts(); }
+}
+function toggleTheme() {
+    document.body.classList.toggle('light');
+    let btn = document.getElementById('themeBtn');
+    btn.textContent = document.body.classList.contains('light') ? '🌙' : '☀️';
+    localStorage.setItem('hh_theme', document.body.classList.contains('light') ? 'light' : 'dark');
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+// ==============================================================
+// SANITIZE DATA
+// ==============================================================
 function sanitizeCategories(cats) {
     if (!Array.isArray(cats)) return [...DEFAULT_CATS];
-    // 1. จำกัดความยาว ไม่เกิน 30 รายการ (ป้องกัน 426)
-    if (cats.length > 30) {
-        console.warn("⚠️ ตรวจพบหมวดหมู่มากเกินไป (", cats.length, ") กำลังตัดเหลือ 30");
-        cats = cats.slice(0, 30);
-    }
-    // 2. ตรวจสอบว่ามีอักษรจีนหรือไม่ (ถ้ามี > 50% ของรายการ ให้รีเซ็ต)
+    if (cats.length > 30) cats = cats.slice(0, 30);
     let chineseCount = 0;
-    cats.forEach(c => {
-        if (typeof c === 'string' && /[\u4e00-\u9fff]/.test(c)) chineseCount++;
-    });
-    if (chineseCount > cats.length * 0.3) {
-        console.warn("⚠️ ตรวจพบอักษรจีนในหมวดหมู่มากเกินไป รีเซ็ตเป็นค่าเริ่มต้น");
-        return [...DEFAULT_CATS];
-    }
-    // 3. ลบรายการที่ว่างหรือซ้ำ
+    cats.forEach(c => { if (typeof c === 'string' && /[\u4e00-\u9fff]/.test(c)) chineseCount++; });
+    if (chineseCount > cats.length * 0.3) return [...DEFAULT_CATS];
     let unique = [...new Set(cats.filter(c => c && c.trim().length > 0))];
-    // 4. ถ้าเหลือน้อยกว่า 3 ให้ใช้ DEFAULT
     if (unique.length < 3) return [...DEFAULT_CATS];
     return unique;
 }
-
 function sanitizeAllData() {
-    // ตรวจสอบหมวดหมู่
     let cleaned = sanitizeCategories(DB.categories);
-    if (cleaned.length !== DB.categories.length || JSON.stringify(cleaned) !== JSON.stringify(DB.categories)) {
+    if (JSON.stringify(cleaned) !== JSON.stringify(DB.categories)) {
         DB.categories = cleaned;
-        showToast("🧹 ตรวจพบข้อมูลหมวดหมู่ผิดปกติ — รีเซ็ตให้เรียบร้อย");
+        showToast("🧹 ตรวจพบข้อมูลผิดปกติ — รีเซ็ตให้เรียบร้อย");
     }
-    // ตรวจสอบล็อต (ชื่อต้องไม่ยาวเกินไป)
     DB.lots = DB.lots.filter(l => l && l.name && l.name.length < 100);
-    // ตรวจสอบยอดขาย
     DB.sales = DB.sales.filter(s => s && s.id);
-    // บันทึกถ้ามีการเปลี่ยนแปลง
     saveLocal();
 }
-
-// --------------------------------------------------------------
+// ==============================================================
 // SAVE & LOAD LOCAL
-// --------------------------------------------------------------
+// ==============================================================
 function saveLocal() {
-    localStorage.setItem('dwo_data', JSON.stringify({ lots: DB.lots, sales: DB.sales, categories: DB.categories, igPosts: DB.igPosts }));
+    localStorage.setItem('hh_data', JSON.stringify({ lots: DB.lots, sales: DB.sales, categories: DB.categories, igPosts: DB.igPosts }));
 }
 function loadLocal() {
-    let raw = localStorage.getItem('dwo_data');
+    let raw = localStorage.getItem('hh_data');
+    // Migration from old key
+    if (!raw) raw = localStorage.getItem('dwo_data');
     if (raw) {
         try {
             let data = JSON.parse(raw);
@@ -340,17 +972,15 @@ function loadLocal() {
             DB.sales = data.sales || [];
             DB.categories = data.categories || [];
             DB.igPosts = data.igPosts || [];
-        } catch(e) { console.warn(e); }
+        } catch (e) { console.warn(e); }
     }
     if (!DB.categories || !DB.categories.length) DB.categories = [...DEFAULT_CATS];
-    // เรียก sanitize ทุกครั้งที่โหลด
     sanitizeAllData();
     renderAll();
 }
-
-// --------------------------------------------------------------
+// ==============================================================
 // RENDER ALL UI
-// --------------------------------------------------------------
+// ==============================================================
 function renderAll() {
     renderStats();
     renderLots();
@@ -375,105 +1005,121 @@ function renderAll() {
     else if (!isCloudConnected) badge.innerText = '📍 Local only';
     else badge.innerText = '📍 Local';
 }
-
 function renderStats() {
-    let totalShirts = DB.lots.reduce((a,l)=>a+(l.totalShirts||0),0);
-    let sold = DB.sales.reduce((a,s)=>a+s.qty,0);
-    let rev = DB.sales.reduce((a,s)=>a+s.qty*s.price,0);
-    let profit = rev - DB.sales.reduce((a,s)=>{ let lot=DB.lots.find(l=>l.id===s.lotId); let c=lot?cpu(lot):0; return a+s.qty*c; },0);
+    let totalShirts = DB.lots.reduce((a, l) => a + (l.totalShirts || 0), 0);
+    let sold = DB.sales.reduce((a, s) => a + s.qty, 0);
+    let rev = DB.sales.reduce((a, s) => a + s.qty * s.price, 0);
+    let profit = rev - DB.sales.reduce((a, s) => {
+        let lot = DB.lots.find(l => l.id === s.lotId);
+        let c = lot ? cpu(lot) : 0;
+        return a + s.qty * c;
+    }, 0);
     document.getElementById('statsGrid').innerHTML = `
         <div class="stat"><div class="stat-label">ล็อต</div><div class="stat-val">${DB.lots.length}</div></div>
         <div class="stat"><div class="stat-label">เสื้อทั้งหมด</div><div class="stat-val">${fmtN(totalShirts)}</div></div>
         <div class="stat"><div class="stat-label">ขายแล้ว</div><div class="stat-val">${fmtN(sold)}</div></div>
-        <div class="stat"><div class="stat-label">รอขาย</div><div class="stat-val">${fmtN(Math.max(0,totalShirts-sold))}</div></div>
+        <div class="stat"><div class="stat-label">รอขาย</div><div class="stat-val">${fmtN(Math.max(0, totalShirts - sold))}</div></div>
         <div class="stat"><div class="stat-label">รายได้</div><div class="stat-val">${fmt(rev)}</div></div>
-        <div class="stat"><div class="stat-label">กำไรสุทธิ</div><div class="stat-val">${profit>=0?'+':''}${fmt(profit)}</div></div>
+        <div class="stat"><div class="stat-label">กำไรสุทธิ</div><div class="stat-val ${profit >= 0 ? 'profit-positive' : 'profit-negative'}">${profit >= 0 ? '+' : ''}${fmt(profit)}</div></div>
     `;
-    let recent = DB.lots.slice(-3).reverse().map(l=>`<div>📦 ${l.name} ขาย ${fmtN(soldOf(l.id))}/${fmtN(l.totalShirts||0)}</div>`).join('');
-    document.getElementById('recentLots').innerHTML = recent || '<div class="info-box">ยังไม่มีล็อต</div>';
+    let recent = DB.lots.slice(-3).reverse().map(l => `<div style="padding:6px 0;border-bottom:1px solid var(--border);">📦 <b>${l.name}</b> — ขาย ${fmtN(soldOf(l.id))}/${fmtN(l.totalShirts || 0)} ตัว</div>`).join('');
+    document.getElementById('recentLots').innerHTML = recent || '<div class="info-box">ยังไม่มีล็อต — เริ่มเพิ่มได้เลย!</div>';
 }
-
 function renderLots() {
-    let filter = document.getElementById('searchLot')?.value.toLowerCase()||'';
-    let filtered = DB.lots.filter(l=>l.name.toLowerCase().includes(filter));
-    let html = filtered.map(l=>{
-        let cost = l.cost+l.ship+l.pack;
-        let profit = revenueOf(l.id)-cost;
-        return `<div style="background:#241A33; margin-bottom:8px; padding:8px; border-radius:8px;">
-            <div><b>${l.name}</b> (${fmtN(l.totalShirts)} ตัว) ต้นทุน/ตัว ${fmt(cpu(l))}</div>
-            <div>ขาย ${fmtN(soldOf(l.id))} ตัว กำไร ${profit>=0?'+':''}${fmt(profit)}</div>
-            <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;">
-                <button class="btn btn-sm" onclick="openEditLot('${l.id}')">✏️ แก้ไข</button>
-                <button class="btn btn-sm" onclick="showQR('${l.id}')">📱 QR</button>
-                <button class="btn btn-sm btn-danger" onclick="deleteLot('${l.id}')">ลบล็อต</button>
+    let filter = document.getElementById('searchLot')?.value.toLowerCase() || '';
+    let filtered = DB.lots.filter(l => l.name.toLowerCase().includes(filter));
+    let html = filtered.map(l => {
+        let cost = l.cost + l.ship + l.pack;
+        let profit = revenueOf(l.id) - cost;
+        let soldPct = l.totalShirts ? ((soldOf(l.id) / l.totalShirts) * 100).toFixed(0) : 0;
+        return `<div class="lot-item">
+            <div class="lot-header">
+                <div class="lot-name">${l.name}</div>
+                <span class="badge">${soldPct}% sold</span>
+            </div>
+            <div class="lot-meta">${fmtN(l.totalShirts)} ตัว · ต้นทุน/ตัว ${fmt(cpu(l))} · ขายแล้ว ${fmtN(soldOf(l.id))}</div>
+            <div class="lot-meta">กำไร <span class="${profit >= 0 ? 'profit-positive' : 'profit-negative'}">${profit >= 0 ? '+' : ''}${fmt(profit)}</span></div>
+            <div class="lot-actions">
+                <button class="btn btn-sm btn-ghost" onclick="openEditLot('${l.id}')">✏️ แก้ไข</button>
+                <button class="btn btn-sm btn-ghost" onclick="showQR('${l.id}')">📱 QR</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteLot('${l.id}')">ลบ</button>
             </div>
         </div>`;
     }).join('');
     document.getElementById('lotList').innerHTML = html || '<div class="info-box">ไม่มีล็อต</div>';
 }
-
 function renderSales() {
     let dateFrom = document.getElementById('filterDateFrom')?.value || '';
     let dateTo = document.getElementById('filterDateTo')?.value || '';
     let custFilter = document.getElementById('filterCustomer')?.value.toLowerCase() || '';
     let filtered = DB.sales.slice().reverse().filter(s => {
-        let d = s.date?.slice(0,10) || '';
-        if(dateFrom && d < dateFrom) return false;
-        if(dateTo && d > dateTo) return false;
-        if(custFilter && !(s.customer||'').toLowerCase().includes(custFilter)) return false;
+        let d = s.date?.slice(0, 10) || '';
+        if (dateFrom && d < dateFrom) return false;
+        if (dateTo && d > dateTo) return false;
+        if (custFilter && !(s.customer || '').toLowerCase().includes(custFilter)) return false;
         return true;
     });
     let totalPages = Math.max(1, Math.ceil(filtered.length / SALE_PAGE_SIZE));
-    if(salePage > totalPages) salePage = totalPages;
-    let paged = filtered.slice((salePage-1)*SALE_PAGE_SIZE, salePage*SALE_PAGE_SIZE);
-    let html = paged.map(s=>{
-        let lot = DB.lots.find(l=>l.id===s.lotId);
+    if (salePage > totalPages) salePage = totalPages;
+    let paged = filtered.slice((salePage - 1) * SALE_PAGE_SIZE, salePage * SALE_PAGE_SIZE);
+    let html = paged.map(s => {
+        let lot = DB.lots.find(l => l.id === s.lotId);
         let costPer = lot ? cpu(lot) : 0;
         let profit = (s.price - costPer) * s.qty;
-        return `<div style="border-bottom:1px solid #3A2D52; padding:6px 0;">
-            <b>${lot?.name||'?'}</b> ${s.shirt} x${s.qty} = ${fmt(s.qty*s.price)} <span style="color:${profit>=0?'#4CAF50':'#FF5C7A'};">(กำไร ${profit>=0?'+':''}${fmt(profit)})</span><br>
-            <span class="badge">👤 ${s.customer||'-'} (${s.contact||'-'})</span>
-            <span style="font-size:11px;color:#A99BC4;"> ${s.date?.slice(0,10)||''}</span>
-            <button class="btn btn-sm" onclick="openEditSale('${s.id}')" style="margin-left:4px;">✏️</button>
+        return `<div class="sale-item">
+            <div class="sale-header"><b>${lot?.name || '?'}</b> ${s.shirt} x${s.qty} = ${fmt(s.qty * s.price)} <span class="sale-profit ${profit >= 0 ? 'profit-positive' : 'profit-negative'}">(${profit >= 0 ? '+' : ''}${fmt(profit)})</span></div>
+            <span class="badge">👤 ${s.customer || '-'} (${s.contact || '-'})</span>
+            <span style="font-size:11px;color:var(--text-muted);margin-left:8px;">${s.date?.slice(0, 10) || ''}</span>
+            <button class="btn btn-sm btn-ghost" onclick="openEditSale('${s.id}')" style="margin-left:6px;">✏️</button>
             <button class="btn btn-sm btn-danger" onclick="deleteSale('${s.id}')">🗑️</button>
         </div>`;
     }).join('');
     document.getElementById('saleList').innerHTML = html || '<div class="info-box">ไม่มีรายการ</div>';
     let paginEl = document.getElementById('salePagination');
-    if(totalPages <= 1) { paginEl.innerHTML = ''; return; }
-    let pHtml = '';
-    for(let i=1;i<=totalPages;i++) pHtml += `<button class="page-btn ${i===salePage?'active':''}" onclick="salePage=${i};renderSales()">${i}</button>`;
-    paginEl.innerHTML = `<span style="font-size:12px;color:#A99BC4;">${filtered.length} รายการ</span> ` + pHtml;
+    if (totalPages <= 1) { paginEl.innerHTML = ''; return; }
+    let pHtml = `<span style="font-size:12px;color:var(--text-muted);">${filtered.length} รายการ</span> `;
+    for (let i = 1; i <= totalPages; i++) pHtml += `<button class="page-btn ${i === salePage ? 'active' : ''}" onclick="salePage=${i};renderSales()">${i}</button>`;
+    paginEl.innerHTML = pHtml;
 }
-
 function renderSummary() {
-    let totalRev = DB.sales.reduce((a,s)=>a+s.qty*s.price,0);
-    let totalCostSold = DB.sales.reduce((a,s)=>{ let lot=DB.lots.find(l=>l.id===s.lotId); let c=lot?cpu(lot):0; return a+s.qty*c; },0);
-    document.getElementById('summaryContent').innerHTML = `<div class="card"><div class="stat-label">รายได้รวม</div><div>${fmt(totalRev)}</div><div class="stat-label">ต้นทุนที่ขายแล้ว</div><div>${fmt(totalCostSold)}</div><div class="stat-label">กำไรสุทธิ</div><div>${fmt(totalRev-totalCostSold)}</div></div>`;
+    let totalRev = DB.sales.reduce((a, s) => a + s.qty * s.price, 0);
+    let totalCostSold = DB.sales.reduce((a, s) => {
+        let lot = DB.lots.find(l => l.id === s.lotId);
+        let c = lot ? cpu(lot) : 0;
+        return a + s.qty * c;
+    }, 0);
+    let netProfit = totalRev - totalCostSold;
+    document.getElementById('summaryContent').innerHTML = `
+        <div class="stat-grid">
+            <div class="stat"><div class="stat-label">รายได้รวม</div><div class="stat-val">${fmt(totalRev)}</div></div>
+            <div class="stat"><div class="stat-label">ต้นทุนที่ขายแล้ว</div><div class="stat-val">${fmt(totalCostSold)}</div></div>
+            <div class="stat"><div class="stat-label">กำไรสุทธิ</div><div class="stat-val ${netProfit >= 0 ? 'profit-positive' : 'profit-negative'}">${netProfit >= 0 ? '+' : ''}${fmt(netProfit)}</div></div>
+        </div>`;
 }
-
 function renderLotSelect() {
     let sel = document.getElementById('sellLot');
-    sel.innerHTML = '<option value="">— เลือกล็อต —</option>'+DB.lots.map(l=>`<option value="${l.id}">${l.name} (ต้นทุน ${fmt(cpu(l))})</option>`).join('');
+    sel.innerHTML = '<option value="">— เลือกล็อต —</option>' + DB.lots.map(l => `<option value="${l.id}">${l.name} (ต้นทุน ${fmt(cpu(l))})</option>`).join('');
     updateShirtSelect();
 }
 function updateShirtSelect() {
     let lotId = document.getElementById('sellLot').value;
-    let lot = DB.lots.find(l=>l.id===lotId);
+    let lot = DB.lots.find(l => l.id === lotId);
     let cats = lot?.categories?.length ? lot.categories : DB.categories;
-    document.getElementById('sellShirt').innerHTML = '<option value="">— หมวด —</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+    document.getElementById('sellShirt').innerHTML = '<option value="">— หมวด —</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
     let preview = document.getElementById('sellCostPreview');
-    if(lot) preview.innerHTML = `<div class="info-box">ต้นทุน/ตัว ${fmt(cpu(lot))} · เสื้อในล็อต ${fmtN(lot.totalShirts)} ตัว</div>`;
+    if (lot) preview.innerHTML = `<div class="info-box">ต้นทุน/ตัว ${fmt(cpu(lot))} · เสื้อในล็อต ${fmtN(lot.totalShirts)} ตัว</div>`;
     else preview.innerHTML = '';
     previewProfit();
 }
 function previewProfit() {
     let lotId = document.getElementById('sellLot').value;
-    let lot = DB.lots.find(l=>l.id===lotId);
-    let price = parseFloat(document.getElementById('sellPrice').value)||0;
+    let lot = DB.lots.find(l => l.id === lotId);
+    let price = parseFloat(document.getElementById('sellPrice').value) || 0;
     let pDiv = document.getElementById('profitPreview');
-    if(lot && price) pDiv.innerHTML = `<div class="info-box">กำไร/ตัว: ${price>=cpu(lot)?'+':''}${fmt(price-cpu(lot))}</div>`;
-    else pDiv.innerHTML = '';
+    if (lot && price) {
+        let profitPer = price - cpu(lot);
+        pDiv.innerHTML = `<div class="info-box">กำไร/ตัว: <span class="${profitPer >= 0 ? 'profit-positive' : 'profit-negative'}">${profitPer >= 0 ? '+' : ''}${fmt(profitPer)}</span></div>`;
+    } else pDiv.innerHTML = '';
 }
 function renderCatManage() {
     let cats = DB.categories.length ? DB.categories : DEFAULT_CATS;
@@ -481,698 +1127,593 @@ function renderCatManage() {
         document.getElementById('catManage').innerHTML = `<div class="cat-warning">⚠️ ตรวจพบหมวดหมู่มากเกินไป (${cats.length}) กดปุ่มรีเซ็ตด้านล่าง</div>`;
         return;
     }
-    document.getElementById('catManage').innerHTML = cats.map((c,i)=>`<div style="display:flex; justify-content:space-between; margin:4px 0;">${c}<button class="btn btn-sm btn-danger" onclick="removeCat(${i})">ลบ</button></div>`).join('');
+    document.getElementById('catManage').innerHTML = cats.map((c, i) => `<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border);"><span>${c}</span><button class="btn btn-sm btn-danger" onclick="removeCat(${i})">ลบ</button></div>`).join('');
 }
 function renderShirtCats() {
     let cats = DB.categories.length ? DB.categories : DEFAULT_CATS;
     if (cats.length > 30) cats = cats.slice(0, 30);
-    document.getElementById('shirtCats').innerHTML = cats.map(c=>`<label><input type="checkbox" value="${c}"> ${c}</label>`).join(' ');
+    document.getElementById('shirtCats').innerHTML = cats.map(c => `<label style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:var(--bg-elevated);border-radius:var(--radius-pill);font-size:12px;cursor:pointer;border:1px solid var(--border);"><input type="checkbox" value="${c}"> ${c}</label>`).join('');
 }
 function renderIgPosts() {
-    let pending = DB.igPosts.filter(p=>p.status==='pending');
-    let posted = DB.igPosts.filter(p=>p.status==='posted');
-    document.getElementById('igPending').innerHTML = pending.map(p=>`<div class="info-box"><b>${p.title}</b><br>${p.content.substring(0,80)}...<br><button class="btn btn-sm" onclick="copyText('${p.id}')">📋 ก็อบ</button> <button class="btn btn-sm btn-primary" onclick="togglePostStatus('${p.id}')">✅ ลงแล้ว</button> <button class="btn btn-sm btn-danger" onclick="deleteIgPost('${p.id}')">🗑️</button></div>`).join('')||'<div class="info-box">ไม่มี</div>';
-    document.getElementById('igPosted').innerHTML = posted.map(p=>`<div class="info-box"><b>✅ ${p.title}</b><br>${p.content.substring(0,80)}...<br><button class="btn btn-sm" onclick="copyText('${p.id}')">📋 ก็อบ</button> <button class="btn btn-sm" onclick="togglePostStatus('${p.id}')">🔄 เปลี่ยนเป็นยังไม่ลง</button> <button class="btn btn-sm btn-danger" onclick="deleteIgPost('${p.id}')">🗑️</button></div>`).join('')||'<div class="info-box">ไม่มี</div>';
+    let pending = DB.igPosts.filter(p => p.status === 'pending');
+    let posted = DB.igPosts.filter(p => p.status === 'posted');
+    document.getElementById('igPending').innerHTML = pending.map(p => `<div class="info-box" style="position:relative;"><b>${p.title}</b><br><span style="font-size:12px;color:var(--text-secondary);">${p.content.substring(0, 100)}...</span><br><div style="display:flex;gap:6px;margin-top:6px;"><button class="btn btn-sm btn-ghost" onclick="copyText('${p.id}')">📋 ก็อบ</button><button class="btn btn-sm btn-primary" onclick="togglePostStatus('${p.id}')">✅ ลงแล้ว</button><button class="btn btn-sm btn-danger" onclick="deleteIgPost('${p.id}')">🗑️</button></div></div>`).join('') || '<div class="info-box">ไม่มีโพสต์ที่รอลง</div>';
+    document.getElementById('igPosted').innerHTML = posted.map(p => `<div class="info-box"><b>✅ ${p.title}</b><br><span style="font-size:12px;color:var(--text-secondary);">${p.content.substring(0, 100)}...</span><br><div style="display:flex;gap:6px;margin-top:6px;"><button class="btn btn-sm btn-ghost" onclick="copyText('${p.id}')">📋 ก็อบ</button><button class="btn btn-sm btn-ghost" onclick="togglePostStatus('${p.id}')">🔄 ยังไม่ลง</button><button class="btn btn-sm btn-danger" onclick="deleteIgPost('${p.id}')">🗑️</button></div></div>`).join('') || '<div class="info-box">ไม่มีโพสต์ที่ลงแล้ว</div>';
 }
-function copyText(id) { let p=DB.igPosts.find(p=>p.id===id); if(p) { navigator.clipboard.writeText(p.content); showToast('ก็อบแล้ว'); } }
+function copyText(id) {
+    let p = DB.igPosts.find(p => p.id === id);
+    if (p) { navigator.clipboard.writeText(p.content); showToast('📋 ก็อบแล้ว!'); }
+}
 async function togglePostStatus(id) {
-    let p = DB.igPosts.find(p=>p.id===id);
-    if(!p) return;
+    let p = DB.igPosts.find(p => p.id === id);
+    if (!p) return;
     const oldStatus = p.status;
     p.status = p.status === 'pending' ? 'posted' : 'pending';
-    saveLocal();
-    renderAll();
-    if(firestore && currentRoom) {
-        try {
-            await firestore.collection('rooms').doc(currentRoom).collection('igPosts').doc(id).update({ status: p.status });
-        } catch(e) {
-            p.status = oldStatus;
-            saveLocal();
-            renderAll();
-            showToast('❌ เปลี่ยนสถานะไม่สำเร็จ');
-        }
+    saveLocal(); renderAll();
+    if (firestore && currentRoom) {
+        try { await firestore.collection('rooms').doc(currentRoom).collection('igPosts').doc(id).update({ status: p.status }); }
+        catch (e) { p.status = oldStatus; saveLocal(); renderAll(); showToast('❌ เปลี่ยนสถานะไม่สำเร็จ'); }
     }
 }
 async function deleteIgPost(id) {
-    if(!confirm('ลบโพสต์นี้?')) return;
+    if (!confirm('ลบโพสต์นี้?')) return;
     const oldPosts = [...DB.igPosts];
-    DB.igPosts = DB.igPosts.filter(p=>p.id!==id);
-    saveLocal();
-    renderAll();
-    if(firestore && currentRoom) {
-        try {
-            await firestore.collection('rooms').doc(currentRoom).collection('igPosts').doc(id).delete();
-        } catch(e) {
-            DB.igPosts = oldPosts;
-            saveLocal();
-            renderAll();
-            showToast('❌ ลบไม่สำเร็จ');
-        }
+    DB.igPosts = DB.igPosts.filter(p => p.id !== id);
+    saveLocal(); renderAll();
+    if (firestore && currentRoom) {
+        try { await firestore.collection('rooms').doc(currentRoom).collection('igPosts').doc(id).delete(); }
+        catch (e) { DB.igPosts = oldPosts; saveLocal(); renderAll(); showToast('❌ ลบไม่สำเร็จ'); }
     }
 }
 function renderAlerts() {
     let alerts = [];
     let now = new Date();
-    DB.lots.forEach(lot=>{
-        if(lot.date){
-            let days = (now - new Date(lot.date))/(1000*3600*24);
-            let soldPct = (soldOf(lot.id)/(lot.totalShirts||1))*100;
-            if(days>30 && soldPct<30) alerts.push(`⚠️ ล็อต "${lot.name}" ผ่านมา ${Math.floor(days)} วัน ขายได้ ${soldPct.toFixed(0)}%`);
+    DB.lots.forEach(lot => {
+        if (lot.date) {
+            let days = (now - new Date(lot.date)) / (1000 * 3600 * 24);
+            let soldPct = (soldOf(lot.id) / (lot.totalShirts || 1)) * 100;
+            if (days > 30 && soldPct < 30) alerts.push(`⚠️ ล็อต "${lot.name}" ผ่านมา ${Math.floor(days)} วัน ขายได้ ${soldPct.toFixed(0)}%`);
         }
     });
-    document.getElementById('alertArea').innerHTML = alerts.length ? `<div class="info-box" style="border-left-color:#FF5C7A;">${alerts.join('<br>')}</div>` : '';
-    if(alerts.length && notify.stale && webhookUrl) sendDiscord(`📦 สินค้าค้างสต๊อก:\n${alerts.join('\n')}`);
+    document.getElementById('alertArea').innerHTML = alerts.length ? `<div class="cat-warning">${alerts.join('<br>')}</div>` : '';
+    if (alerts.length && notify.stale && webhookUrl) sendDiscord(`📦 สินค้าค้างสต๊อก:\n${alerts.join('\n')}`);
 }
 let dailyChart, catChart;
 function renderCharts() {
-    let last7 = [...Array(7)].map((_,i)=>{ let d=new Date(); d.setDate(d.getDate()-i); return d.toISOString().slice(0,10); }).reverse();
-    let dailyRev = last7.map(day=>DB.sales.filter(s=>s.date?.slice(0,10)===day).reduce((a,s)=>a+s.qty*s.price,0));
+    let last7 = [...Array(7)].map((_, i) => { let d = new Date(); d.setDate(d.getDate() - i); return d.toISOString().slice(0, 10); }).reverse();
+    let dailyRev = last7.map(day => DB.sales.filter(s => s.date?.slice(0, 10) === day).reduce((a, s) => a + s.qty * s.price, 0));
     let ctx = document.getElementById('dailyChart')?.getContext('2d');
-    if(ctx){ if(dailyChart) dailyChart.destroy(); dailyChart = new Chart(ctx, { type:'line', data:{ labels:last7.map(d=>d.slice(5)), datasets:[{label:'รายได้ (บาท)', data:dailyRev, borderColor:'#A855F7'}] } }); }
+    if (ctx) {
+        if (dailyChart) dailyChart.destroy();
+        dailyChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: last7.map(d => d.slice(5)),
+                datasets: [{
+                    label: 'รายได้ (บาท)',
+                    data: dailyRev,
+                    borderColor: '#A855F7',
+                    backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#BFFF00',
+                    pointBorderColor: '#A855F7',
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { labels: { color: '#9B8FBA' } } },
+                scales: {
+                    x: { ticks: { color: '#6B5F85' }, grid: { color: 'rgba(168,85,247,0.08)' } },
+                    y: { ticks: { color: '#6B5F85' }, grid: { color: 'rgba(168,85,247,0.08)' } }
+                }
+            }
+        });
+    }
     let catProfit = {};
-    DB.sales.forEach(s=>{ let lot=DB.lots.find(l=>l.id===s.lotId); let c=lot?cpu(lot):0; let profit=(s.price-c)*s.qty; let cat=s.shirt||'อื่นๆ'; catProfit[cat]=(catProfit[cat]||0)+profit; });
+    DB.sales.forEach(s => {
+        let lot = DB.lots.find(l => l.id === s.lotId);
+        let c = lot ? cpu(lot) : 0;
+        let profit = (s.price - c) * s.qty;
+        let cat = s.shirt || 'อื่นๆ';
+        catProfit[cat] = (catProfit[cat] || 0) + profit;
+    });
     let catCtx = document.getElementById('catChart')?.getContext('2d');
-    if(catCtx){ if(catChart) catChart.destroy(); catChart = new Chart(catCtx, { type:'bar', data:{ labels:Object.keys(catProfit), datasets:[{label:'กำไร', data:Object.values(catProfit), backgroundColor:'#7C3AED'}] } }); }
+    if (catCtx) {
+        if (catChart) catChart.destroy();
+        let colors = ['#A855F7', '#BFFF00', '#FF2D78', '#00E676', '#FFD600', '#7C3AED', '#C4A0FF', '#FF6B35'];
+        catChart = new Chart(catCtx, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(catProfit),
+                datasets: [{
+                    label: 'กำไร',
+                    data: Object.values(catProfit),
+                    backgroundColor: Object.keys(catProfit).map((_, i) => colors[i % colors.length]),
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { labels: { color: '#9B8FBA' } } },
+                scales: {
+                    x: { ticks: { color: '#6B5F85' }, grid: { color: 'rgba(168,85,247,0.08)' } },
+                    y: { ticks: { color: '#6B5F85' }, grid: { color: 'rgba(168,85,247,0.08)' } }
+                }
+            }
+        });
+    }
 }
-
-// --------------------------------------------------------------
-// IG POST TEMPLATE (หน่วยนิ้ว)
-// --------------------------------------------------------------
+// ==============================================================
+// IG POST TEMPLATE
+// ==============================================================
 function applyIgTemplate() {
     let template = document.getElementById('igTemplate').value;
-    let brand = document.getElementById('igBrand').value;
-    let size = document.getElementById('igSize').value;
-    let chest = document.getElementById('igChest').value;
-    let length = document.getElementById('igLength').value;
-    let condition = document.getElementById('igCondition').value;
-    let flaws = document.getElementById('igFlaws').value;
-    let price = document.getElementById('igPrice').value;
-    
     let content = template
-        .replace(/{แบรนด์}/g, brand || '')
-        .replace(/{Size}/g, size || '')
-        .replace(/{อก}/g, chest || '')
-        .replace(/{ยาว}/g, length || '')
-        .replace(/{สภาพ}/g, condition || '')
-        .replace(/{ตำหนิ}/g, flaws || '')
-        .replace(/{Price}/g, price || '');
+        .replace(/{แบรนด์}/g, document.getElementById('igBrand').value || '')
+        .replace(/{Size}/g, document.getElementById('igSize').value || '')
+        .replace(/{อก}/g, document.getElementById('igChest').value || '')
+        .replace(/{ยาว}/g, document.getElementById('igLength').value || '')
+        .replace(/{สภาพ}/g, document.getElementById('igCondition').value || '')
+        .replace(/{ตำหนิ}/g, document.getElementById('igFlaws').value || '')
+        .replace(/{Price}/g, document.getElementById('igPrice').value || '');
     document.getElementById('igContent').value = content;
 }
 function resetIgTemplate() {
-    let defaultTmpl = `แบรนด์ {แบรนด์}
-Size : {Size}
-อก : {อก} นิ้ว
-ยาว : {ยาว} นิ้ว
-สภาพ : {สภาพ}
-ตำหนิ : {ตำหนิ}
-Price : {Price} บาท
-อ่านรายละเอียดให้มั่นใจก่อนตัดสินใจพิมพ์รับ
-สินค้าทำความสะอาดแล้วคับแต่แนะนำให้ซักอีกรอบ
-สนใจสินค้าเม้นใต้โพสต์ หรือ DMมาสอบถามได้
-ดีเทลอาจจะคลาดเคลื่อน 0.5+`;
-    document.getElementById('igTemplate').value = defaultTmpl;
-    showToast('คืนค่าเทมเพลต (หน่วยนิ้ว)');
+    document.getElementById('igTemplate').value = `แบรนด์ {แบรนด์}\nSize : {Size}\nอก : {อก} นิ้ว\nยาว : {ยาว} นิ้ว\nสภาพ : {สภาพ}\nตำหนิ : {ตำหนิ}\nPrice : {Price} บาท\nอ่านรายละเอียดให้มั่นใจก่อนตัดสินใจพิมพ์รับ\nสินค้าทำความสะอาดแล้วคับแต่แนะนำให้ซักอีกรอบ\nสนใจสินค้าเม้นใต้โพสต์ หรือ DMมาสอบถามได้\nดีเทลอาจจะคลาดเคลื่อน 0.5+`;
+    showToast('🔄 คืนค่าเทมเพลตแล้ว');
 }
-
-// --------------------------------------------------------------
-// RESET CATEGORIES (ปุ่มกด)
-// --------------------------------------------------------------
-async function resetCategories() {
-    if(!confirm('รีเซ็ตหมวดหมู่กลับเป็นค่าเริ่มต้น (6 หมวด) ใช่ไหม?')) return;
-    const oldCats = [...DB.categories];
-    DB.categories = [...DEFAULT_CATS];
-    saveLocal();
-    renderAll();
-    showToast('✅ รีเซ็ตหมวดหมู่เรียบร้อย');
-    if(firestore && currentRoom) {
-        try {
-            await firestore.collection('rooms').doc(currentRoom).collection('meta').doc('categories').set({ list: DB.categories });
-        } catch(e) {
-            DB.categories = oldCats;
-            saveLocal();
-            renderAll();
-            showToast('❌ รีเซ็ตคลาวด์ล้มเหลว');
-        }
-    }
-}
-
-// --------------------------------------------------------------
-// CRUD (Optimistic UI + Background Sync)
-// --------------------------------------------------------------
+// ==============================================================
+// CRUD OPERATIONS
+// ==============================================================
 async function addLot() {
     let name = document.getElementById('lotName').value.trim();
     let total = parseInt(document.getElementById('lotTotal').value);
-    if(!name || !total) { alert('ใส่ชื่อและจำนวนเสื้อ'); return; }
-    let cats = [...document.querySelectorAll('#shirtCats input:checked')].map(i=>i.value);
+    if (!name || !total) { alert('ใส่ชื่อและจำนวนเสื้อ'); return; }
+    let cats = [...document.querySelectorAll('#shirtCats input:checked')].map(i => i.value);
     let newLot = {
-        id: Date.now().toString(),
-        name, totalShirts: total,
-        cost: parseFloat(document.getElementById('lotCost').value)||0,
-        ship: parseFloat(document.getElementById('lotShip').value)||0,
-        pack: parseFloat(document.getElementById('lotPack').value)||0,
-        weight: parseFloat(document.getElementById('lotWeight').value)||0,
-        categories: cats,
-        date: new Date().toISOString()
+        id: Date.now().toString(), name, totalShirts: total,
+        cost: parseFloat(document.getElementById('lotCost').value) || 0,
+        ship: parseFloat(document.getElementById('lotShip').value) || 0,
+        pack: parseFloat(document.getElementById('lotPack').value) || 0,
+        weight: parseFloat(document.getElementById('lotWeight').value) || 0,
+        categories: cats, date: new Date().toISOString()
     };
-    DB.lots.push(newLot);
-    saveLocal();
-    renderAll();
-    clearLotForm();
-    if(firestore && currentRoom) {
+    DB.lots.push(newLot); saveLocal(); renderAll(); clearLotForm();
+    if (firestore && currentRoom) {
         try {
             await firestore.collection('rooms').doc(currentRoom).collection('lots').doc(newLot.id).set(newLot);
             showToast('✅ บันทึกลงคลาวด์แล้ว');
-            if(notify.lot && webhookUrl) sendDiscord(`📦 เพิ่มล็อต: ${name} (${total} ตัว)`);
-        } catch(e) { showToast('⚠️ บันทึก local แล้ว แต่คลาวด์ล้มเหลว'); }
+            if (notify.lot && webhookUrl) sendDiscord(`📦 เพิ่มล็อต: ${name} (${total} ตัว)`);
+        } catch (e) { showToast('⚠️ บันทึก local แล้ว แต่คลาวด์ล้มเหลว'); }
     } else showToast('💾 บันทึกไว้ในเครื่อง');
 }
 function clearLotForm() {
-    ['lotName','lotTotal','lotCost','lotShip','lotPack','lotWeight'].forEach(id=>document.getElementById(id).value='');
-    document.querySelectorAll('#shirtCats input').forEach(cb=>cb.checked=false);
+    ['lotName', 'lotTotal', 'lotCost', 'lotShip', 'lotPack', 'lotWeight'].forEach(id => document.getElementById(id).value = '');
+    document.querySelectorAll('#shirtCats input').forEach(cb => cb.checked = false);
 }
 async function deleteLot(lotId) {
-    if(!confirm('ลบล็อตนี้? ยอดขายในล็อตจะถูกลบด้วย')) return;
-    const oldLots = [...DB.lots];
-    const oldSales = [...DB.sales];
-    DB.lots = DB.lots.filter(l=>l.id!==lotId);
-    DB.sales = DB.sales.filter(s=>s.lotId!==lotId);
-    saveLocal();
-    renderAll();
-    if(firestore && currentRoom) {
+    if (!confirm('ลบล็อตนี้? ยอดขายในล็อตจะถูกลบด้วย')) return;
+    const oldLots = [...DB.lots]; const oldSales = [...DB.sales];
+    DB.lots = DB.lots.filter(l => l.id !== lotId);
+    DB.sales = DB.sales.filter(s => s.lotId !== lotId);
+    saveLocal(); renderAll();
+    if (firestore && currentRoom) {
         try {
             let batch = firestore.batch();
-            let salesSnap = await firestore.collection('rooms').doc(currentRoom).collection('sales').where('lotId','==',lotId).get();
-            salesSnap.forEach(d=>batch.delete(d.ref));
+            let salesSnap = await firestore.collection('rooms').doc(currentRoom).collection('sales').where('lotId', '==', lotId).get();
+            salesSnap.forEach(d => batch.delete(d.ref));
             batch.delete(firestore.collection('rooms').doc(currentRoom).collection('lots').doc(lotId));
             await batch.commit();
-        } catch(e) {
-            DB.lots = oldLots;
-            DB.sales = oldSales;
-            saveLocal();
-            renderAll();
-            alert('ลบไม่สำเร็จ กรุณาลองใหม่');
-        }
+        } catch (e) { DB.lots = oldLots; DB.sales = oldSales; saveLocal(); renderAll(); alert('ลบไม่สำเร็จ กรุณาลองใหม่'); }
     }
 }
 async function addSale() {
     let lotId = document.getElementById('sellLot').value;
     let shirt = document.getElementById('sellShirt').value;
-    let qty = parseInt(document.getElementById('sellQty').value)||1;
-    let price = parseFloat(document.getElementById('sellPrice').value)||0;
+    let qty = parseInt(document.getElementById('sellQty').value) || 1;
+    let price = parseFloat(document.getElementById('sellPrice').value) || 0;
     let customer = document.getElementById('customerName').value;
     let contact = document.getElementById('customerContact').value;
     let details = document.getElementById('extraDetails').value;
-    if(!lotId || !price) { alert('เลือกล็อตและใส่ราคา'); return; }
+    if (!lotId || !price) { alert('เลือกล็อตและใส่ราคา'); return; }
     let newSale = { id: Date.now().toString(), lotId, shirt, qty, price, date: new Date().toISOString(), customer, contact, details };
-    DB.sales.push(newSale);
-    saveLocal();
-    renderAll();
-    clearSaleForm();
-    if(firestore && currentRoom) {
+    DB.sales.push(newSale); saveLocal(); renderAll(); clearSaleForm();
+    if (firestore && currentRoom) {
         try {
             await firestore.collection('rooms').doc(currentRoom).collection('sales').doc(newSale.id).set(newSale);
             showToast('✅ บันทึกการขายลงคลาวด์');
-            if(notify.sale && webhookUrl) sendDiscord(`💰 ขาย: ${DB.lots.find(l=>l.id===lotId)?.name} ${shirt} ${qty} ตัว รวม ${fmt(qty*price)}`);
-        } catch(e) { showToast('⚠️ บันทึก local แล้ว แต่คลาวด์ล้มเหลว'); }
+            if (notify.sale && webhookUrl) sendDiscord(`💰 ขาย: ${DB.lots.find(l => l.id === lotId)?.name} ${shirt} ${qty} ตัว รวม ${fmt(qty * price)}`);
+        } catch (e) { showToast('⚠️ บันทึก local แล้ว แต่คลาวด์ล้มเหลว'); }
     } else showToast('💾 บันทึกไว้ในเครื่อง');
 }
 function clearSaleForm() {
-    document.getElementById('sellPrice').value='';
-    document.getElementById('customerName').value='';
-    document.getElementById('customerContact').value='';
-    document.getElementById('extraDetails').value='';
-    document.getElementById('sellQty').value='1';
+    document.getElementById('sellPrice').value = '';
+    document.getElementById('customerName').value = '';
+    document.getElementById('customerContact').value = '';
+    document.getElementById('extraDetails').value = '';
+    document.getElementById('sellQty').value = '1';
 }
 async function deleteSale(saleId) {
-    if(confirm('ลบรายการขาย?')) {
-        const oldSales = [...DB.sales];
-        DB.sales = DB.sales.filter(s=>s.id!==saleId);
-        saveLocal();
-        renderAll();
-        if(firestore && currentRoom) {
-            try {
-                await firestore.collection('rooms').doc(currentRoom).collection('sales').doc(saleId).delete();
-            } catch(e) {
-                DB.sales = oldSales;
-                saveLocal();
-                renderAll();
-                alert('ลบไม่สำเร็จ');
-            }
-        }
+    if (!confirm('ลบรายการขาย?')) return;
+    const oldSales = [...DB.sales];
+    DB.sales = DB.sales.filter(s => s.id !== saleId);
+    saveLocal(); renderAll();
+    if (firestore && currentRoom) {
+        try { await firestore.collection('rooms').doc(currentRoom).collection('sales').doc(saleId).delete(); }
+        catch (e) { DB.sales = oldSales; saveLocal(); renderAll(); alert('ลบไม่สำเร็จ'); }
     }
 }
 async function addCategory() {
     let newCat = document.getElementById('newCat').value.trim();
-    if(!newCat) return;
-    if(DB.categories.includes(newCat)) { alert('มีหมวดนี้แล้ว'); return; }
-    if(DB.categories.length >= 30) { alert('หมวดหมู่เกิน 30 ไม่อนุญาตให้เพิ่ม'); return; }
+    if (!newCat) return;
+    if (DB.categories.includes(newCat)) { alert('มีหมวดนี้แล้ว'); return; }
+    if (DB.categories.length >= 30) { alert('หมวดหมู่เกิน 30 ไม่อนุญาตให้เพิ่ม'); return; }
     const oldCats = [...DB.categories];
-    DB.categories.push(newCat);
-    saveLocal();
-    renderAll();
-    if(firestore && currentRoom) {
-        try {
-            await firestore.collection('rooms').doc(currentRoom).collection('meta').doc('categories').set({ list: DB.categories });
-        } catch(e) {
-            DB.categories = oldCats;
-            saveLocal();
-            renderAll();
-            showToast('❌ เพิ่มหมวดไม่สำเร็จ');
-        }
+    DB.categories.push(newCat); saveLocal(); renderAll();
+    if (firestore && currentRoom) {
+        try { await firestore.collection('rooms').doc(currentRoom).collection('meta').doc('categories').set({ list: DB.categories }); }
+        catch (e) { DB.categories = oldCats; saveLocal(); renderAll(); showToast('❌ เพิ่มหมวดไม่สำเร็จ'); }
     }
-    document.getElementById('newCat').value='';
+    document.getElementById('newCat').value = '';
 }
 async function removeCat(idx) {
     const oldCats = [...DB.categories];
-    DB.categories.splice(idx,1);
-    saveLocal();
-    renderAll();
-    if(firestore && currentRoom) {
-        try {
-            await firestore.collection('rooms').doc(currentRoom).collection('meta').doc('categories').set({ list: DB.categories });
-        } catch(e) {
-            DB.categories = oldCats;
-            saveLocal();
-            renderAll();
-            showToast('❌ ลบหมวดไม่สำเร็จ');
-        }
+    DB.categories.splice(idx, 1); saveLocal(); renderAll();
+    if (firestore && currentRoom) {
+        try { await firestore.collection('rooms').doc(currentRoom).collection('meta').doc('categories').set({ list: DB.categories }); }
+        catch (e) { DB.categories = oldCats; saveLocal(); renderAll(); showToast('❌ ลบหมวดไม่สำเร็จ'); }
+    }
+}
+async function resetCategories() {
+    if (!confirm('รีเซ็ตหมวดหมู่กลับเป็นค่าเริ่มต้น (6 หมวด) ใช่ไหม?')) return;
+    const oldCats = [...DB.categories];
+    DB.categories = [...DEFAULT_CATS]; saveLocal(); renderAll();
+    showToast('✅ รีเซ็ตหมวดหมู่เรียบร้อย');
+    if (firestore && currentRoom) {
+        try { await firestore.collection('rooms').doc(currentRoom).collection('meta').doc('categories').set({ list: DB.categories }); }
+        catch (e) { DB.categories = oldCats; saveLocal(); renderAll(); showToast('❌ รีเซ็ตคลาวด์ล้มเหลว'); }
     }
 }
 async function addIgPost() {
     let title = document.getElementById('igTitle').value.trim();
     let content = document.getElementById('igContent').value.trim();
-    if(!content) { alert('กรุณาสร้างข้อความโพสต์ก่อน'); return; }
-    let newPost = { id: Date.now().toString(), title: title||'โพสต์', content, status: 'pending', date: new Date().toISOString() };
-    DB.igPosts.push(newPost);
-    saveLocal();
-    renderAll();
-    if(firestore && currentRoom) {
-        try {
-            await firestore.collection('rooms').doc(currentRoom).collection('igPosts').doc(newPost.id).set(newPost);
-        } catch(e) { showToast('⚠️ บันทึกโพสต์ลงคลาวด์ไม่สำเร็จ'); }
+    if (!content) { alert('กรุณาสร้างข้อความโพสต์ก่อน'); return; }
+    let newPost = { id: Date.now().toString(), title: title || 'โพสต์', content, status: 'pending', date: new Date().toISOString() };
+    DB.igPosts.push(newPost); saveLocal(); renderAll();
+    if (firestore && currentRoom) {
+        try { await firestore.collection('rooms').doc(currentRoom).collection('igPosts').doc(newPost.id).set(newPost); }
+        catch (e) { showToast('⚠️ บันทึกโพสต์ลงคลาวด์ไม่สำเร็จ'); }
     }
-    document.getElementById('igTitle').value='';
-    document.getElementById('igContent').value='';
-    showToast('✅ บันทึกโพสต์แล้ว (รอลง)');
+    document.getElementById('igTitle').value = '';
+    document.getElementById('igContent').value = '';
+    showToast('✅ บันทึกโพสต์แล้ว');
 }
-
-// --------------------------------------------------------------
-// FIREBASE CONFIG & SYNC
-// --------------------------------------------------------------
-async function testAndSaveConfig() {
-    let raw = document.getElementById('firebaseConfigInput').value.trim();
-    if(!raw) { alert('กรุณาใส่ JSON Config'); return; }
-    let config;
-    try { config = JSON.parse(raw); } catch(e) { alert('JSON ไม่ถูกต้อง'); return; }
-    if(!config.apiKey || !config.projectId) { alert('Missing apiKey or projectId'); return; }
-    let testApp;
-    try {
-        testApp = firebase.initializeApp(config, 'test');
-        let testDb = firebase.firestore(testApp);
-        await testDb.collection('test_write').doc('test').set({ ok: true });
-        await testDb.collection('test_write').doc('test').delete();
-        document.getElementById('configTestResult').innerHTML = '✅ Config ถูกต้อง สามารถเขียน Firestore ได้';
-        let settings = { webhookUrl, notifySettings: notify, firebaseConfig: config };
-        localStorage.setItem('dwo_cloud_settings', JSON.stringify(settings));
-        showToast('บันทึก Config สำเร็จ');
-        testApp.delete();
-        setTimeout(()=>location.reload(), 1000);
-    } catch(err) {
-        document.getElementById('configTestResult').innerHTML = `❌ Error: ${err.message}<br>ตรวจสอบ Security Rules (ต้อง allow read, write: if true)`;
-    }
-}
-function loadLocalSettings() {
-    let raw = localStorage.getItem('dwo_cloud_settings');
-    if(raw) {
-        try {
-            let s = JSON.parse(raw);
-            if(s.webhookUrl) webhookUrl = s.webhookUrl;
-            if(s.notifySettings) notify = s.notifySettings;
-            if(s.firebaseConfig) document.getElementById('firebaseConfigInput').value = JSON.stringify(s.firebaseConfig, null, 2);
-        } catch(e) {}
-    }
-    document.getElementById('webhookUrl').value = webhookUrl;
-    document.getElementById('notifySale').checked = notify.sale;
-    document.getElementById('notifyLot').checked = notify.lot;
-    document.getElementById('notifyStale').checked = notify.stale;
-}
-function saveWebhookSettings() {
-    webhookUrl = document.getElementById('webhookUrl').value;
-    notify = {
-        sale: document.getElementById('notifySale').checked,
-        lot: document.getElementById('notifyLot').checked,
-        stale: document.getElementById('notifyStale').checked
-    };
-    let oldConfig = null;
-    try { oldConfig = JSON.parse(localStorage.getItem('dwo_cloud_settings'))?.firebaseConfig; } catch(e) {}
-    localStorage.setItem('dwo_cloud_settings', JSON.stringify({ webhookUrl, notifySettings: notify, firebaseConfig: oldConfig }));
-    showToast('บันทึก Webhook แล้ว');
-}
-async function testWebhook() {
-    if(!webhookUrl) { alert('ไม่มี URL'); return; }
-    try {
-        await fetch(webhookUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ content:'✅ ทดสอบแจ้งเตือนจาก Dek Wen v20 (Clean)' }) });
-        showToast('ส่งทดสอบแล้ว');
-    } catch(e) { alert('ส่งไม่สำเร็จ'); }
-}
-async function sendDiscord(msg) {
-    if(!webhookUrl) return;
-    try { await fetch(webhookUrl, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ content: msg.substring(0,1900) }) }); } catch(e) {}
-}
-// --------------------------------------------------------------
-// JOIN ROOM
-// --------------------------------------------------------------
-async function joinRoom() {
-    let room = document.getElementById('roomIdInput').value.trim();
-    if(!room) { alert('กรอกรหัสกลุ่ม'); return; }
-    let settingsRaw = localStorage.getItem('dwo_cloud_settings');
-    let config = null;
-    if(settingsRaw) {
-        try { config = JSON.parse(settingsRaw).firebaseConfig; } catch(e) {}
-    }
-    if(!config) { alert('⚠️ ยังไม่มี Firebase Config กรุณาบันทึกในแท็บตั้งค่าก่อน'); return; }
-    if(unsubLots) unsubLots();
-    if(unsubSales) unsubSales();
-    if(unsubIg) unsubIg();
-    if(unsubCats) unsubCats();
-    if(firebase.apps.length===0) firebase.initializeApp(config);
-    let db = firebase.firestore();
-    firestore = db;
-    currentRoom = room;
-    document.getElementById('roomStatus').innerHTML = '📁 โหลดข้อมูลในเครื่อง...';
-    isCloudConnected = true;
-    hasCloudData = false;
-    loadLocal();
-    setTimeout(async () => {
-        try {
-            let lotsSnap = await db.collection('rooms').doc(room).collection('lots').get();
-            let salesSnap = await db.collection('rooms').doc(room).collection('sales').get();
-            let igSnap = await db.collection('rooms').doc(room).collection('igPosts').get();
-            let catDoc = await db.collection('rooms').doc(room).collection('meta').doc('categories').get();
-            let cloudLots = lotsSnap.docs.map(d=>d.data());
-            let cloudSales = salesSnap.docs.map(d=>d.data());
-            let cloudIg = igSnap.docs.map(d=>d.data());
-            let cloudCats = catDoc.exists ? catDoc.data().list : [];
-            if(cloudCats.length > 0) {
-                // sanitize cloud cats
-                cloudCats = sanitizeCategories(cloudCats);
-            }
-            if(cloudLots.length > 0 || cloudSales.length > 0 || cloudIg.length > 0 || cloudCats.length > 0) {
-                hasCloudData = true;
-                DB.lots = cloudLots;
-                DB.sales = cloudSales;
-                DB.igPosts = cloudIg;
-                DB.categories = cloudCats.length ? cloudCats : DEFAULT_CATS;
-                saveLocal();
-                renderAll();
-                showToast('📡 ซิงค์ข้อมูลจากคลาวด์แล้ว');
-            } else {
-                hasCloudData = false;
-                showToast('📁 ยังไม่มีข้อมูลบนคลาวด์ ใช้ข้อมูลในเครื่อง');
-            }
-            unsubLots = db.collection('rooms').doc(room).collection('lots').onSnapshot(snap=>{
-                if(hasCloudData && !isSyncing) {
-                    DB.lots = snap.docs.map(d=>d.data());
-                    saveLocal();
-                    renderAll();
-                }
-            });
-            unsubSales = db.collection('rooms').doc(room).collection('sales').onSnapshot(snap=>{
-                if(hasCloudData && !isSyncing) {
-                    DB.sales = snap.docs.map(d=>d.data());
-                    saveLocal();
-                    renderAll();
-                }
-            });
-            unsubIg = db.collection('rooms').doc(room).collection('igPosts').onSnapshot(snap=>{
-                if(hasCloudData && !isSyncing) {
-                    DB.igPosts = snap.docs.map(d=>d.data());
-                    saveLocal();
-                    renderAll();
-                }
-            });
-            unsubCats = db.collection('rooms').doc(room).collection('meta').doc('categories').onSnapshot(doc=>{
-                if(hasCloudData && doc.exists && !isSyncing) {
-                    let rawCats = doc.data().list || DEFAULT_CATS;
-                    DB.categories = sanitizeCategories(rawCats);
-                    saveLocal();
-                    renderAll();
-                }
-            });
-            document.getElementById('roomStatus').innerHTML = `✅ ห้อง: ${room} (เรียลไทม์)`;
-        } catch(err) {
-            console.warn(err);
-            document.getElementById('roomStatus').innerHTML = `⚠️ เชื่อมต่อคลาวด์ล้มเหลว ใช้ข้อมูลในเครื่อง`;
-        }
-    }, 100);
-    localStorage.setItem('dwo_last_room', room);
-}
-async function migrateLocalToCloud() {
-    if(!firestore || !currentRoom) { alert('ยังไม่ได้เชื่อมต่อ Firebase'); return; }
-    if(DB.lots.length === 0 && DB.sales.length === 0 && DB.igPosts.length === 0) {
-        alert('ไม่มีข้อมูล local ที่จะอัปโหลด');
-        return;
-    }
-    isSyncing = true;
-    try {
-        let batch = firestore.batch();
-        let roomRef = firestore.collection('rooms').doc(currentRoom);
-        DB.lots.forEach(lot => {
-            let ref = roomRef.collection('lots').doc(lot.id);
-            batch.set(ref, lot);
-        });
-        DB.sales.forEach(sale => {
-            let ref = roomRef.collection('sales').doc(sale.id);
-            batch.set(ref, sale);
-        });
-        DB.igPosts.forEach(post => {
-            let ref = roomRef.collection('igPosts').doc(post.id);
-            batch.set(ref, post);
-        });
-        let catRef = roomRef.collection('meta').doc('categories');
-        batch.set(catRef, { list: DB.categories });
-        await batch.commit();
-        showToast('✅ อัปโหลดข้อมูล local ขึ้นคลาวด์เรียบร้อย');
-        hasCloudData = true;
-        document.getElementById('migrateBar').style.display = 'none';
-        renderAll();
-    } catch(err) {
-        alert('อัปโหลดล้มเหลว: '+err.message);
-    } finally {
-        isSyncing = false;
-    }
-}
-// --------------------------------------------------------------
-// EXPORT / IMPORT / CLEAR
-// --------------------------------------------------------------
-async function exportCloudData() {
-    let data = { lots: DB.lots, sales: DB.sales, categories: DB.categories, igPosts: DB.igPosts };
-    let a = document.createElement('a');
-    a.href = 'data:application/json,' + encodeURIComponent(JSON.stringify(data,null,2));
-    a.download = `dekwen_${currentRoom||'backup'}.json`;
-    a.click();
-}
-function exportCSV() {
-    let rows = [['วันที่','ล็อต','หมวด','จำนวน','ราคา/ตัว','รายได้','ต้นทุน/ตัว','กำไรรวม','ลูกค้า','ติดต่อ','รายละเอียด']];
-    DB.sales.forEach(s=>{
-        let lot = DB.lots.find(l=>l.id===s.lotId);
-        let costPer = lot ? cpu(lot) : 0;
-        let profit = (s.price - costPer) * s.qty;
-        rows.push([
-            s.date?.slice(0,10)||'', lot?.name||'', s.shirt||'',
-            s.qty, s.price, s.qty*s.price,
-            Math.round(costPer), Math.round(profit),
-            s.customer||'', s.contact||'', s.details||''
-        ]);
-    });
-    let csv = rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-    let a = document.createElement('a');
-    a.href = 'data:text/csv;charset=utf-8,\uFEFF' + encodeURIComponent(csv);
-    a.download = `sales_${new Date().toISOString().slice(0,10)}.csv`;
-    a.click();
-}
-async function clearAllCloud() {
-    if(!confirm('⚠️ ล้างข้อมูลทั้งหมดในกลุ่มนี้? ไม่สามารถกู้คืนได้')) return;
-    if(firestore && currentRoom) {
-        let batch = firestore.batch();
-        let lotsSnap = await firestore.collection('rooms').doc(currentRoom).collection('lots').get();
-        lotsSnap.forEach(d=>batch.delete(d.ref));
-        let salesSnap = await firestore.collection('rooms').doc(currentRoom).collection('sales').get();
-        salesSnap.forEach(d=>batch.delete(d.ref));
-        let igSnap = await firestore.collection('rooms').doc(currentRoom).collection('igPosts').get();
-        igSnap.forEach(d=>batch.delete(d.ref));
-        await firestore.collection('rooms').doc(currentRoom).collection('meta').doc('categories').delete();
-        await batch.commit();
-        DB.lots = []; DB.sales = []; DB.igPosts = []; DB.categories = [...DEFAULT_CATS];
-        saveLocal();
-        hasCloudData = false;
-        renderAll();
-        showToast('ล้างข้อมูลคลาวด์และ local แล้ว');
-    } else {
-        DB.lots = []; DB.sales = []; DB.igPosts = []; DB.categories = [...DEFAULT_CATS];
-        saveLocal();
-        renderAll();
-    }
-}
-function showTab(event, tabId) {
-    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-    document.getElementById(tabId).classList.add('active');
-    let btns = document.querySelectorAll('.nav button');
-    btns.forEach(btn=>btn.classList.remove('active'));
-    if(event && event.target) event.target.classList.add('active');
-    renderAll();
-}
-function toggleTheme() { document.body.classList.toggle('light'); }
-// QR scanner
-let scanner;
-function openScanner() {
-    let readerDiv = document.getElementById('qrReader');
-    readerDiv.style.display = 'block';
-    if(scanner) scanner.stop().catch(e=>{});
-    scanner = new Html5Qrcode("qrReader");
-    scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, (decoded)=>{
-        let found = DB.lots.find(l=>l.id===decoded || l.name===decoded);
-        if(found) {
-            document.getElementById('sellLot').value = found.id;
-            updateShirtSelect();
-            scanner.stop();
-            readerDiv.style.display = 'none';
-            alert(`✅ เลือกล็อต ${found.name}`);
-        } else alert('ไม่พบล็อต');
-    }, err=>console.warn(err));
-}
-// --------------------------------------------------------------
-function joinRoomConfirm() {
-    if(currentRoom && isCloudConnected) {
-        let newRoom = document.getElementById('roomIdInput').value.trim();
-        if(newRoom !== currentRoom) {
-            if(!confirm(`ออกจากกลุ่ม "${currentRoom}" แล้วเข้ากลุ่ม "${newRoom}" ใช่ไหม?`)) return;
-        }
-    }
-    joinRoom();
-}
-// --------------------------------------------------------------
-// EDIT LOT
-// --------------------------------------------------------------
+// ==============================================================
+// EDIT MODALS
+// ==============================================================
 function openEditLot(lotId) {
-    let l = DB.lots.find(l=>l.id===lotId);
-    if(!l) return;
-    document.getElementById('editLotId').value = l.id;
-    document.getElementById('editLotName').value = l.name;
-    document.getElementById('editLotTotal').value = l.totalShirts;
-    document.getElementById('editLotCost').value = l.cost;
-    document.getElementById('editLotShip').value = l.ship;
-    document.getElementById('editLotPack').value = l.pack;
-    document.getElementById('editLotWeight').value = l.weight||0;
+    let lot = DB.lots.find(l => l.id === lotId);
+    if (!lot) return;
+    document.getElementById('editLotId').value = lotId;
+    document.getElementById('editLotName').value = lot.name;
+    document.getElementById('editLotTotal').value = lot.totalShirts;
+    document.getElementById('editLotCost').value = lot.cost;
+    document.getElementById('editLotShip').value = lot.ship;
+    document.getElementById('editLotPack').value = lot.pack;
+    document.getElementById('editLotWeight').value = lot.weight || '';
     document.getElementById('editLotModal').classList.add('open');
 }
 async function saveEditLot() {
-    let id = document.getElementById('editLotId').value;
-    let l = DB.lots.find(l=>l.id===id);
-    if(!l) return;
-    let oldLot = {...l};
-    l.name = document.getElementById('editLotName').value.trim() || l.name;
-    l.totalShirts = parseInt(document.getElementById('editLotTotal').value)||l.totalShirts;
-    l.cost = parseFloat(document.getElementById('editLotCost').value)||0;
-    l.ship = parseFloat(document.getElementById('editLotShip').value)||0;
-    l.pack = parseFloat(document.getElementById('editLotPack').value)||0;
-    l.weight = parseFloat(document.getElementById('editLotWeight').value)||0;
-    saveLocal(); renderAll(); closeModal('editLotModal');
-    showToast('✅ แก้ไขล็อตแล้ว');
-    if(firestore && currentRoom) {
-        try {
-            await firestore.collection('rooms').doc(currentRoom).collection('lots').doc(id).set(l);
-        } catch(e) {
-            Object.assign(l, oldLot); saveLocal(); renderAll();
-            showToast('❌ บันทึกคลาวด์ล้มเหลว');
-        }
+    let lotId = document.getElementById('editLotId').value;
+    let lot = DB.lots.find(l => l.id === lotId);
+    if (!lot) return;
+    lot.name = document.getElementById('editLotName').value.trim();
+    lot.totalShirts = parseInt(document.getElementById('editLotTotal').value) || 0;
+    lot.cost = parseFloat(document.getElementById('editLotCost').value) || 0;
+    lot.ship = parseFloat(document.getElementById('editLotShip').value) || 0;
+    lot.pack = parseFloat(document.getElementById('editLotPack').value) || 0;
+    lot.weight = parseFloat(document.getElementById('editLotWeight').value) || 0;
+    saveLocal(); renderAll(); closeModal('editLotModal'); showToast('✅ แก้ไขล็อตแล้ว');
+    if (firestore && currentRoom) {
+        try { await firestore.collection('rooms').doc(currentRoom).collection('lots').doc(lotId).set(lot); }
+        catch (e) { showToast('⚠️ แก้ไขคลาวด์ล้มเหลว'); }
     }
 }
-// EDIT SALE
 function openEditSale(saleId) {
-    let s = DB.sales.find(s=>s.id===saleId);
-    if(!s) return;
-    document.getElementById('editSaleId').value = s.id;
-    document.getElementById('editSaleQty').value = s.qty;
-    document.getElementById('editSalePrice').value = s.price;
-    document.getElementById('editSaleCustomer').value = s.customer||'';
-    document.getElementById('editSaleContact').value = s.contact||'';
-    document.getElementById('editSaleDetails').value = s.details||'';
+    let sale = DB.sales.find(s => s.id === saleId);
+    if (!sale) return;
+    document.getElementById('editSaleId').value = saleId;
+    document.getElementById('editSaleQty').value = sale.qty;
+    document.getElementById('editSalePrice').value = sale.price;
+    document.getElementById('editSaleCustomer').value = sale.customer || '';
+    document.getElementById('editSaleContact').value = sale.contact || '';
+    document.getElementById('editSaleDetails').value = sale.details || '';
     document.getElementById('editSaleModal').classList.add('open');
 }
 async function saveEditSale() {
-    let id = document.getElementById('editSaleId').value;
-    let s = DB.sales.find(s=>s.id===id);
-    if(!s) return;
-    let oldSale = {...s};
-    s.qty = parseInt(document.getElementById('editSaleQty').value)||s.qty;
-    s.price = parseFloat(document.getElementById('editSalePrice').value)||s.price;
-    s.customer = document.getElementById('editSaleCustomer').value;
-    s.contact = document.getElementById('editSaleContact').value;
-    s.details = document.getElementById('editSaleDetails').value;
-    saveLocal(); renderAll(); closeModal('editSaleModal');
-    showToast('✅ แก้ไขยอดขายแล้ว');
-    if(firestore && currentRoom) {
-        try {
-            await firestore.collection('rooms').doc(currentRoom).collection('sales').doc(id).set(s);
-        } catch(e) {
-            Object.assign(s, oldSale); saveLocal(); renderAll();
-            showToast('❌ บันทึกคลาวด์ล้มเหลว');
-        }
+    let saleId = document.getElementById('editSaleId').value;
+    let sale = DB.sales.find(s => s.id === saleId);
+    if (!sale) return;
+    sale.qty = parseInt(document.getElementById('editSaleQty').value) || 1;
+    sale.price = parseFloat(document.getElementById('editSalePrice').value) || 0;
+    sale.customer = document.getElementById('editSaleCustomer').value;
+    sale.contact = document.getElementById('editSaleContact').value;
+    sale.details = document.getElementById('editSaleDetails').value;
+    saveLocal(); renderAll(); closeModal('editSaleModal'); showToast('✅ แก้ไขรายการขายแล้ว');
+    if (firestore && currentRoom) {
+        try { await firestore.collection('rooms').doc(currentRoom).collection('sales').doc(saleId).set(sale); }
+        catch (e) { showToast('⚠️ แก้ไขคลาวด์ล้มเหลว'); }
     }
 }
-// QR CODE GENERATE
+// ==============================================================
+// QR CODE
+// ==============================================================
 function showQR(lotId) {
-    let lot = DB.lots.find(l=>l.id===lotId);
-    if(!lot) return;
-    document.getElementById('qrModalTitle').innerText = `QR — ${lot.name}`;
-    document.getElementById('qrModalSub').innerText = `ID: ${lot.id}`;
+    let lot = DB.lots.find(l => l.id === lotId);
+    if (!lot) return;
+    let data = JSON.stringify({ lotId: lot.id, name: lot.name });
+    document.getElementById('qrModalTitle').textContent = `QR: ${lot.name}`;
+    document.getElementById('qrModalSub').textContent = `ID: ${lot.id}`;
     let canvas = document.getElementById('qrCanvas');
-    QRCode.toCanvas(canvas, lot.id, { width: 200, color: { dark: '#F5F0FF', light: '#1A1424' } }, err => {
-        if(err) console.warn(err);
-    });
+    if (typeof QRCode !== 'undefined') {
+        QRCode.toCanvas(canvas, data, { width: 200, margin: 2, color: { dark: '#A855F7', light: '#0A0A0F' } });
+    }
     document.getElementById('qrModal').classList.add('open');
 }
 function downloadQR() {
     let canvas = document.getElementById('qrCanvas');
-    let title = document.getElementById('qrModalTitle').innerText.replace('QR — ','');
-    let a = document.createElement('a');
-    a.href = canvas.toDataURL('image/png');
-    a.download = `qr_${title}.png`;
-    a.click();
+    let link = document.createElement('a');
+    link.download = 'hypehunt-qr.png';
+    link.href = canvas.toDataURL();
+    link.click();
 }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-document.addEventListener('click', e => {
-    ['editLotModal','editSaleModal','qrModal'].forEach(id => {
-        let el = document.getElementById(id);
-        if(el && e.target === el) el.classList.remove('open');
+let qrScanner = null;
+function openScanner() {
+    let readerDiv = document.getElementById('qrReader');
+    if (readerDiv.style.display === 'none') {
+        readerDiv.style.display = 'block';
+        if (typeof Html5Qrcode !== 'undefined') {
+            qrScanner = new Html5Qrcode('qrReader');
+            qrScanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: 200 }, (text) => {
+                try {
+                    let data = JSON.parse(text);
+                    if (data.lotId) {
+                        document.getElementById('sellLot').value = data.lotId;
+                        updateShirtSelect();
+                        showToast('📷 สแกนสำเร็จ: ' + (data.name || data.lotId));
+                    }
+                } catch (e) { showToast('⚠️ QR ไม่ถูกต้อง'); }
+                qrScanner.stop(); readerDiv.style.display = 'none';
+            }).catch(e => { showToast('⚠️ เปิดกล้องไม่ได้'); readerDiv.style.display = 'none'; });
+        }
+    } else {
+        if (qrScanner) qrScanner.stop();
+        readerDiv.style.display = 'none';
+    }
+}
+// ==============================================================
+// FIREBASE CONFIG & SYNC
+// ==============================================================
+async function testAndSaveConfig() {
+    let raw = document.getElementById('firebaseConfigInput').value.trim();
+    let result = document.getElementById('configTestResult');
+    if (!raw) { result.innerHTML = '⚠️ กรุณาใส่ Firebase config'; return; }
+    try {
+        let config = JSON.parse(raw);
+        if (!config.apiKey || !config.projectId) throw new Error('ขาด apiKey หรือ projectId');
+        let app = firebase.initializeApp(config, 'testApp_' + Date.now());
+        firestore = app.firestore();
+        await firestore.collection('__test__').doc('ping').set({ t: Date.now() });
+        await firestore.collection('__test__').doc('ping').delete();
+        localStorage.setItem('hh_firebase', raw);
+        isCloudConnected = true;
+        result.innerHTML = '✅ เชื่อมต่อ Firebase สำเร็จ!';
+        showToast('✅ Firebase พร้อมใช้งาน');
+    } catch (e) {
+        result.innerHTML = `❌ ผิดพลาด: ${e.message}`;
+        isCloudConnected = false;
+    }
+    renderAll();
+}
+function loadFirebaseConfig() {
+    let raw = localStorage.getItem('hh_firebase');
+    if (!raw) raw = localStorage.getItem('dwo_firebase');
+    if (raw) {
+        document.getElementById('firebaseConfigInput').value = raw;
+        try {
+            let config = JSON.parse(raw);
+            let app = firebase.initializeApp(config, 'autoApp_' + Date.now());
+            firestore = app.firestore();
+            isCloudConnected = true;
+            document.getElementById('configTestResult').innerHTML = '✅ โหลด config อัตโนมัติ';
+        } catch (e) { console.warn('Auto-load firebase failed:', e); }
+    }
+    let savedRoom = localStorage.getItem('hh_room') || localStorage.getItem('dwo_room');
+    if (savedRoom && firestore) {
+        document.getElementById('roomIdInput').value = savedRoom;
+        joinRoom(savedRoom);
+    }
+}
+function joinRoomConfirm() {
+    let roomId = document.getElementById('roomIdInput').value.trim();
+    if (!roomId) { alert('ใส่รหัสกลุ่ม'); return; }
+    if (!firestore) { alert('กรุณาตั้งค่า Firebase ก่อน'); return; }
+    joinRoom(roomId);
+}
+function joinRoom(roomId) {
+    currentRoom = roomId;
+    localStorage.setItem('hh_room', roomId);
+    document.getElementById('roomStatus').innerHTML = `<span class="online-dot"></span>กลุ่ม: <b>${roomId}</b>`;
+    document.getElementById('roomStatus').style.color = 'var(--success)';
+    subscribeRoom();
+}
+function subscribeRoom() {
+    if (!firestore || !currentRoom) return;
+    unsubAll();
+    let roomRef = firestore.collection('rooms').doc(currentRoom);
+    unsubLots = roomRef.collection('lots').onSnapshot(snap => {
+        if (isSyncing) return;
+        DB.lots = snap.docs.map(d => d.data());
+        hasCloudData = hasCloudData || DB.lots.length > 0;
+        saveLocal(); renderAll();
     });
-});
-function updateOnlineStatus() {
-    let el = document.getElementById('onlineStatus');
-    if(!el) return;
-    if(navigator.onLine) {
-        el.innerHTML = '<span class="online-dot"></span>Online';
-    } else {
-        el.innerHTML = '<span class="online-dot offline-dot"></span>Offline';
-        showToast('⚠️ ขาดการเชื่อมต่ออินเทอร์เน็ต');
+    unsubSales = roomRef.collection('sales').onSnapshot(snap => {
+        if (isSyncing) return;
+        DB.sales = snap.docs.map(d => d.data());
+        hasCloudData = hasCloudData || DB.sales.length > 0;
+        saveLocal(); renderAll();
+    });
+    unsubIg = roomRef.collection('igPosts').onSnapshot(snap => {
+        if (isSyncing) return;
+        DB.igPosts = snap.docs.map(d => d.data());
+        hasCloudData = hasCloudData || DB.igPosts.length > 0;
+        saveLocal(); renderAll();
+    });
+    unsubCats = roomRef.collection('meta').doc('categories').onSnapshot(snap => {
+        if (isSyncing) return;
+        let data = snap.data();
+        if (data?.list) { DB.categories = sanitizeCategories(data.list); saveLocal(); renderAll(); }
+    });
+}
+function unsubAll() {
+    if (unsubLots) unsubLots();
+    if (unsubSales) unsubSales();
+    if (unsubIg) unsubIg();
+    if (unsubCats) unsubCats();
+}
+async function migrateLocalToCloud() {
+    if (!firestore || !currentRoom) return;
+    if (!confirm('อัปโหลดข้อมูลในเครื่องขึ้นคลาวด์?')) return;
+    isSyncing = true;
+    try {
+        let roomRef = firestore.collection('rooms').doc(currentRoom);
+        for (let lot of DB.lots) await roomRef.collection('lots').doc(lot.id).set(lot);
+        for (let sale of DB.sales) await roomRef.collection('sales').doc(sale.id).set(sale);
+        for (let post of DB.igPosts) await roomRef.collection('igPosts').doc(post.id).set(post);
+        if (DB.categories.length) await roomRef.collection('meta').doc('categories').set({ list: DB.categories });
+        hasCloudData = true;
+        showToast('✅ อัปโหลดเสร็จสิ้น!');
+    } catch (e) { showToast('❌ อัปโหลดล้มเหลว: ' + e.message); }
+    isSyncing = false;
+    renderAll();
+}
+// ==============================================================
+// DISCORD WEBHOOK
+// ==============================================================
+async function sendDiscord(msg) {
+    if (!webhookUrl) return;
+    try {
+        await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: `**[HypeHunt]** ${msg}` })
+        });
+    } catch (e) { console.warn('Discord webhook failed:', e); }
+}
+function saveWebhookSettings() {
+    webhookUrl = document.getElementById('webhookUrl').value.trim();
+    notify.sale = document.getElementById('notifySale').checked;
+    notify.lot = document.getElementById('notifyLot').checked;
+    notify.stale = document.getElementById('notifyStale').checked;
+    localStorage.setItem('hh_webhook', JSON.stringify({ url: webhookUrl, notify }));
+    showToast('💾 บันทึก Webhook แล้ว');
+}
+function loadWebhookSettings() {
+    let raw = localStorage.getItem('hh_webhook') || localStorage.getItem('dwo_webhook');
+    if (raw) {
+        try {
+            let data = JSON.parse(raw);
+            webhookUrl = data.url || '';
+            notify = data.notify || { sale: true, lot: true, stale: true };
+            document.getElementById('webhookUrl').value = webhookUrl;
+            document.getElementById('notifySale').checked = notify.sale;
+            document.getElementById('notifyLot').checked = notify.lot;
+            document.getElementById('notifyStale').checked = notify.stale;
+        } catch (e) { }
     }
 }
-window.addEventListener('online', updateOnlineStatus);
-window.addEventListener('offline', updateOnlineStatus);
-window.onload = () => {
-    loadLocal();
-    loadLocalSettings();
-    updateOnlineStatus();
-    let lastRoom = localStorage.getItem('dwo_last_room');
-    if(lastRoom && localStorage.getItem('dwo_cloud_settings')) {
-        document.getElementById('roomIdInput').value = lastRoom;
-        joinRoom();
-    } else {
-        document.getElementById('roomStatus').innerHTML = '⚠️ ตั้งค่า Firebase Config และรหัสกลุ่ม';
+async function testWebhook() {
+    let url = document.getElementById('webhookUrl').value.trim();
+    if (!url) { alert('ใส่ Webhook URL ก่อน'); return; }
+    try {
+        await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ content: '🧪 **[HypeHunt]** ทดสอบ Webhook สำเร็จ!' })
+        });
+        showToast('✅ ส่ง Webhook สำเร็จ');
+    } catch (e) { showToast('❌ ส่งไม่สำเร็จ'); }
+}
+// ==============================================================
+// EXPORT
+// ==============================================================
+function exportCloudData() {
+    let blob = new Blob([JSON.stringify(DB, null, 2)], { type: 'application/json' });
+    let a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `hypehunt-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    showToast('📥 Export JSON สำเร็จ');
+}
+function exportCSV() {
+    let rows = [['Date', 'Lot', 'Category', 'Qty', 'Price', 'Total', 'Customer', 'Contact', 'Details']];
+    DB.sales.forEach(s => {
+        let lot = DB.lots.find(l => l.id === s.lotId);
+        rows.push([s.date?.slice(0, 10), lot?.name || '?', s.shirt, s.qty, s.price, s.qty * s.price, s.customer, s.contact, s.details]);
+    });
+    let csv = rows.map(r => r.map(v => `"${v || ''}"`).join(',')).join('\n');
+    let blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    let a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `hypehunt-sales-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    showToast('📊 Export CSV สำเร็จ');
+}
+async function clearAllCloud() {
+    if (!confirm('⚠️ ล้างข้อมูลทั้งหมด? (ไม่สามารถกู้คืนได้)')) return;
+    if (!confirm('ยืนยันอีกครั้ง — ข้อมูลทั้งหมดจะหายไป')) return;
+    DB = { lots: [], sales: [], categories: [...DEFAULT_CATS], igPosts: [] };
+    saveLocal(); renderAll();
+    if (firestore && currentRoom) {
+        try {
+            let roomRef = firestore.collection('rooms').doc(currentRoom);
+            let collections = ['lots', 'sales', 'igPosts'];
+            for (let col of collections) {
+                let snap = await roomRef.collection(col).get();
+                let batch = firestore.batch();
+                snap.forEach(doc => batch.delete(doc.ref));
+                await batch.commit();
+            }
+            await roomRef.collection('meta').doc('categories').set({ list: DEFAULT_CATS });
+        } catch (e) { showToast('⚠️ ลบคลาวด์ไม่สมบูรณ์'); }
     }
-    resetIgTemplate();
-};
+    showToast('🗑️ ล้างข้อมูลเรียบร้อย');
+}
+// ==============================================================
+// ONLINE/OFFLINE DETECTION
+// ==============================================================
+window.addEventListener('online', () => {
+    document.getElementById('onlineStatus').innerHTML = '<span class="online-dot"></span>Online';
+});
+window.addEventListener('offline', () => {
+    document.getElementById('onlineStatus').innerHTML = '<span class="online-dot offline-dot"></span>Offline';
+});
+// ==============================================================
+// INIT
+// ==============================================================
+window.addEventListener('DOMContentLoaded', () => {
+    // Load theme
+    if (localStorage.getItem('hh_theme') === 'light') {
+        document.body.classList.add('light');
+        document.getElementById('themeBtn').textContent = '🌙';
+    }
+    loadLocal();
+    loadWebhookSettings();
+    loadFirebaseConfig();
+});
 </script>
 </body>
 </html>
+
