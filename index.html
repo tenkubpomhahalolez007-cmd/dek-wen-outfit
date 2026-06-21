@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>HypeHunt — Street Inventory Manager v29</title>
+    <title>HypeHunt — Street Inventory Manager v30</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -76,9 +76,8 @@
         .section { display: none; animation: fadeSlideIn 0.35s ease; }
         .section.active { display: block; }
         @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-        .card { background: var(--bg-card); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 14px; box-shadow: var(--shadow-card); transition: border-color var(--transition); }
+        .card { background: var(--bg-card); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.25rem; margin-bottom: 14px; box-shadow: var(--shadow-card); transition: border-color var(--transition); position: relative; }
         .card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--purple-primary), var(--neon-lime), transparent); opacity: 0.7; }
-        .card { position: relative; }
         .card h3 { font-family: var(--font-display); font-size: 16px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
         .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 14px; }
         .stat { background: var(--bg-elevated); border-radius: var(--radius-md); padding: 12px; border-left: 3px solid var(--purple-primary); }
@@ -125,11 +124,9 @@
         .sale-item:last-child { border-bottom: none; }
         .profit-positive { color: var(--success); }
         .profit-negative { color: var(--hot-pink); }
-        .calendar-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        @media (max-width: 700px) { .calendar-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 700px) { .form-row { grid-template-columns: 1fr; } .ig-field-grid { grid-template-columns: 1fr; } }
         input[type="file"] { background: var(--bg-input); }
         .event-notified { opacity: 0.6; }
-        .event-notified .badge { background: var(--bg-card-solid); color: var(--text-muted); }
     </style>
 </head>
 <body>
@@ -138,7 +135,7 @@
         <div class="logo"><span class="hype">HYPE</span><span class="hunt">HUNT</span></div>
         <div class="topbar-right">
             <span id="onlineStatus" style="font-size:12px;"><span class="online-dot"></span>Online</span>
-            <div class="ver-badge">v29 🗓️ ปฏิทินไลฟ์</div>
+            <div class="ver-badge">v30 ⏰ ตั้งเวลาเตือนล่วงหน้า</div>
             <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">🌙</button>
         </div>
     </div>
@@ -217,7 +214,7 @@
     <!-- IG POSTS -->
     <div id="igposts" class="section">
         <div class="card">
-            <h3>📋 โพสต์ IG <span class="street-tag" style="display:inline-block;background:linear-gradient(135deg,var(--purple-deep),var(--hot-pink));color:#fff;font-size:10px;padding:2px 10px;border-radius:4px;">แก้ไขได้</span></h3>
+            <h3>📋 โพสต์ IG <span class="badge-lime" style="font-size:10px;">แก้ไขได้</span></h3>
             <div style="display:flex;gap:8px;margin-bottom:12px;align-items:center;"><input type="text" id="searchIg" placeholder="🔍 ค้นหา..." oninput="renderIgPosts()" style="flex:1;"><span id="igCount" style="font-size:12px;color:var(--text-muted);"></span></div>
             <div style="margin-bottom:10px;"><label>📦 เลือกล็อตแนะนำราคา</label><select id="igLot" onchange="updateIgPriceSuggestion()"></select><div id="igCostPreview"></div></div>
             <div class="ig-field-grid">
@@ -235,7 +232,7 @@
         <div class="card"><h3>✅ ลงแล้ว</h3><div id="igPosted"></div></div>
     </div>
 
-    <!-- CALENDAR (ใหม่) -->
+    <!-- CALENDAR (เพิ่มตัวเลือกแจ้งเตือนล่วงหน้า) -->
     <div id="calendar" class="section">
         <div class="card">
             <h3>📅 เพิ่มกิจกรรมไลฟ์ / ลงเสื้อ</h3>
@@ -247,7 +244,19 @@
                 <input id="eventDate" type="date">
                 <input id="eventTime" type="time">
             </div>
-            <input id="eventNote" placeholder="หมายเหตุ (เช่น รายละเอียดเพิ่มเติม)" style="margin-bottom:8px;">
+            <div class="form-row">
+                <input id="eventNote" placeholder="หมายเหตุ (เช่น รายละเอียดเพิ่มเติม)">
+                <select id="eventReminder">
+                    <option value="0">⏰ ไม่แจ้งล่วงหน้า</option>
+                    <option value="5">5 นาทีก่อน</option>
+                    <option value="10">10 นาทีก่อน</option>
+                    <option value="15" selected>15 นาทีก่อน</option>
+                    <option value="30">30 นาทีก่อน</option>
+                    <option value="60">1 ชั่วโมงก่อน</option>
+                    <option value="120">2 ชั่วโมงก่อน</option>
+                    <option value="1440">1 วันก่อน</option>
+                </select>
+            </div>
             <button class="btn btn-primary" onclick="addSchedule()">➕ เพิ่มกิจกรรม</button>
         </div>
         <div class="card">
@@ -263,14 +272,14 @@
         <div class="card"><h3>🔐 รหัสผ่านกลุ่ม</h3><div style="display:flex;gap:8px;"><input type="password" id="setRoomPassword" placeholder="ตั้งรหัสผ่าน" style="flex:1;"><button class="btn btn-sm btn-primary" onclick="saveRoomPassword()">ตั้งค่า</button></div></div>
         <div class="card"><h3>🔗 Gumloop</h3><div class="form-row"><input id="gumloopUserId" placeholder="User ID"><input id="gumloopSavedItemId" placeholder="Saved Item ID"></div><input type="password" id="gumloopApiKey" placeholder="API Key" style="margin-bottom:8px;"><button class="btn btn-sm btn-primary" onclick="saveGumloopSettings()">💾 บันทึก</button><button class="btn btn-sm btn-ghost" onclick="testGumloopConnection()">🧪 ทดสอบ</button><div id="gumloopTestResult" class="info-box" style="margin-top:10px;display:none;"></div></div>
         <div class="card"><h3>🏷️ หมวดเสื้อ</h3><div id="catManage"></div><div class="form-row" style="margin-top:10px;"><input id="newCat" placeholder="ชื่อหมวดใหม่"><button class="btn btn-sm btn-primary" onclick="addCategory()">เพิ่ม</button></div><button class="btn btn-sm btn-danger" onclick="resetCategories()" style="margin-top:8px;">🔄 รีเซ็ต</button></div>
-        <div class="card"><h3>📥 นำเข้า CSV (ใหม่)</h3><input type="file" id="importCsvFile" accept=".csv" onchange="importCSV(event)" style="padding:8px;"><p style="font-size:12px;color:var(--text-muted);margin-top:4px;">คอลัมน์: Date, Lot, Category, Qty, Price, Customer, Contact, Details, Status, Deposit, DueDate</p></div>
+        <div class="card"><h3>📥 นำเข้า CSV</h3><input type="file" id="importCsvFile" accept=".csv" onchange="importCSV(event)" style="padding:8px;"><p style="font-size:12px;color:var(--text-muted);margin-top:4px;">คอลัมน์: Date, Lot, Category, Qty, Price, Customer, Contact, Details, Status, Deposit, DueDate</p></div>
         <div class="card"><h3>💾 จัดการข้อมูล</h3><button class="btn btn-ghost" onclick="exportCloudData()">📥 Export JSON</button><button class="btn btn-ghost" onclick="exportCSV()" style="margin-left:8px;">📊 Export CSV</button></div>
         <div class="card"><h3>🔗 หน้าร้าน</h3><button class="btn btn-sm btn-primary" onclick="exportShopHTML()">🔗 ส่งออก shop.html</button></div>
         <div class="card"><button class="btn btn-danger" onclick="clearAllCloud()">⚠️ ล้างข้อมูลทั้งหมด</button></div>
     </div>
 </div>
 
-<!-- MODALS -->
+<!-- MODALS (คงเดิม) -->
 <div class="edit-modal" id="editLotModal"><div class="edit-modal-inner"><h3>✏️ แก้ไขล็อต</h3><input type="hidden" id="editLotId"><div class="form-row"><input id="editLotName" placeholder="ชื่อ"><input id="editLotTotal" type="number" placeholder="จำนวน"></div><div class="form-row"><input id="editLotCost" type="number" placeholder="ราคาซื้อ"><input id="editLotShip" type="number" placeholder="ขนส่ง"></div><div class="form-row"><input id="editLotPack" type="number" placeholder="บรรจุ"><input id="editLotWeight" type="number" placeholder="น้ำหนัก"></div><button class="btn btn-primary" onclick="saveEditLot()">💾 บันทึก</button><button class="btn btn-ghost" onclick="closeModal('editLotModal')">ยกเลิก</button></div></div>
 <div class="edit-modal" id="editSaleModal"><div class="edit-modal-inner"><h3>✏️ แก้ไขรายการขาย</h3><input type="hidden" id="editSaleId"><div class="form-row"><input id="editSaleQty" type="number" placeholder="จำนวน"><input id="editSalePrice" type="number" placeholder="ราคา/ตัว"></div><div class="form-row"><input id="editSaleCustomer" placeholder="ชื่อ"><input id="editSaleContact" placeholder="@line/ig"></div><input id="editSaleDetails" placeholder="ไซส์/แบรนด์" style="margin-bottom:10px;"><div class="form-row"><select id="editSaleStatus"><option value="paid">จ่ายเต็ม</option><option value="deposit">มัดจำ</option><option value="hold">จอง</option></select><div style="display:flex;gap:8px;"><input id="editSaleDeposit" type="number" placeholder="มัดจำ" style="display:none;"><input id="editSaleDueDate" type="date" style="display:none;"></div></div><button class="btn btn-primary" onclick="saveEditSale()">💾 บันทึก</button><button class="btn btn-ghost" onclick="closeModal('editSaleModal')">ยกเลิก</button></div></div>
 <div class="edit-modal" id="editIgPostModal"><div class="edit-modal-inner"><h3>✏️ แก้ไขโพสต์ IG</h3><input type="hidden" id="editIgPostId"><div class="ig-field-grid" style="margin-bottom:8px;"><input id="editIgProductName" placeholder="ชื่อสินค้า"><input id="editIgTitle" placeholder="ชื่อโพสต์"></div><div class="ig-field-grid"><input id="editIgBrand" placeholder="แบรนด์"><input id="editIgSize" placeholder="Size"><input id="editIgChest" placeholder="อก"><input id="editIgLength" placeholder="ยาว"><input id="editIgCondition" placeholder="สภาพ"><input id="editIgFlaws" placeholder="ตำหนิ"><input id="editIgPrice" type="number" placeholder="Price"><input id="editIgImgUrl" placeholder="ลิงก์รูป"></div><textarea id="editIgContent" rows="4" placeholder="ข้อความโพสต์" style="margin:8px 0;"></textarea><button class="btn btn-primary" onclick="saveEditIgPost()">💾 บันทึก</button><button class="btn btn-ghost" onclick="closeModal('editIgPostModal')">ยกเลิก</button></div></div>
@@ -279,11 +288,11 @@
 <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script>
 // ==============================================================
-// v29 — แก้ไขโพสต์ IG, กรองสถานะ, นำเข้า CSV, ปฏิทิน
+// v30 — เพิ่มตัวเลือกแจ้งเตือนล่วงหน้า (Reminder)
 // ==============================================================
 let DB = { lots: [], sales: [], categories: [], igPosts: [], schedules: [] };
 let firestore = null, currentRoom = null;
-let unsubLots, unsubSales, unsubIg, unsubCats;
+let unsubLots, unsubSales, unsubIg, unsubCats, unsubSchedules;
 let webhookUrl = "", notify = { sale: true, lot: true, stale: true, schedule: true };
 let isCloudConnected = false, hasCloudData = false, isSyncing = false;
 let salePage = 1, lotPage = 1;
@@ -301,6 +310,7 @@ function soldOf(lotId) { return DB.sales.filter(s => s.lotId === lotId).reduce((
 function revenueOf(lotId) { return DB.sales.filter(s => s.lotId === lotId).reduce((a, s) => a + s.qty * s.price, 0); }
 function showToast(msg) { let t = document.createElement('div'); t.className = 'toast'; t.innerText = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2000); }
 function stopScanner() { if (qrScannerInstance) { try { qrScannerInstance.stop(); } catch(e){} qrScannerInstance = null; document.getElementById('qrReader').style.display = 'none'; } }
+function setLoading(btnId, loading) { let btn=document.getElementById(btnId); if(!btn)return; if(loading){ btn.disabled=true; btn.dataset.original=btn.innerHTML; btn.innerHTML='<span class="spinner"></span> กำลัง...'; } else { btn.disabled=false; btn.innerHTML=btn.dataset.original||btn.innerText; } }
 
 // ==============================================================
 // SAVE / LOAD LOCAL
@@ -313,7 +323,6 @@ function saveLocal() {
 }
 function loadLocal() {
     let raw = localStorage.getItem('hh_data');
-    if (!raw) raw = localStorage.getItem('dwo_data');
     if (raw) {
         try { let d = JSON.parse(raw); DB.lots = d.lots || []; DB.sales = d.sales || []; DB.categories = d.categories || []; DB.igPosts = d.igPosts || []; DB.schedules = d.schedules || []; } catch(e){}
     }
@@ -329,7 +338,7 @@ function showTab(event, tabId) { document.querySelectorAll('.section').forEach(s
 function closeModal(id) { document.getElementById(id).classList.remove('open'); if (id === 'qrModal') stopScanner(); }
 
 // ==============================================================
-// RENDER ALL
+// RENDER ALL (พื้นฐาน)
 // ==============================================================
 function renderAll() {
     renderStats(); renderLots(); renderSales(); renderSummary();
@@ -374,7 +383,7 @@ function renderLots() {
     let totalPages = Math.max(1, Math.ceil(filtered.length / LOT_PAGE_SIZE));
     if (lotPage > totalPages) lotPage = totalPages;
     let paged = filtered.slice((lotPage-1) * LOT_PAGE_SIZE, lotPage * LOT_PAGE_SIZE);
-    let html = paged.map(l => `<div class="lot-item"><div class="lot-header"><div><b>${l.name}</b> (${fmtN(l.totalShirts)} ตัว)</div><span class="badge">ต้นทุน ${fmt(cpu(l))}</span></div><div class="lot-meta">ขาย ${fmtN(soldOf(l.id))} ตัว</div><div><button class="btn btn-sm btn-ghost" onclick="openEditLot('${l.id}')">✏️</button><button class="btn btn-sm btn-danger" onclick="deleteLot('${l.id}')">🗑️</button></div></div>`).join('');
+    let html = paged.map(l => `<div class="lot-item"><div><b>${l.name}</b> (${fmtN(l.totalShirts)} ตัว) ต้นทุน ${fmt(cpu(l))}</div><div>ขาย ${fmtN(soldOf(l.id))} ตัว</div><div><button class="btn btn-sm btn-ghost" onclick="openEditLot('${l.id}')">✏️</button><button class="btn btn-sm btn-danger" onclick="deleteLot('${l.id}')">🗑️</button></div></div>`).join('');
     document.getElementById('lotList').innerHTML = html || '<div class="info-box">ไม่มีล็อต</div>';
     let paginEl = document.getElementById('lotPagination');
     if (totalPages<=1) { paginEl.innerHTML = ''; return; }
@@ -447,8 +456,7 @@ function updateIgPriceSuggestion() { let lotId=document.getElementById('igLot').
 function renderCatManage() { document.getElementById('catManage').innerHTML = DB.categories.map((c,i)=>`<div style="display:flex;justify-content:space-between;padding:4px 0;"><span>${c}</span><button class="btn btn-sm btn-danger" onclick="removeCat(${i})">ลบ</button></div>`).join(''); }
 function renderShirtCats() { document.getElementById('shirtCats').innerHTML = DB.categories.map(c => `<label style="display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:var(--bg-elevated);border-radius:var(--radius-pill);font-size:12px;border:1px solid var(--border);"><input type="checkbox" value="${c}"> ${c}</label>`).join(''); }
 function renderAlerts() {
-    let alerts = [];
-    let now = new Date();
+    let alerts = []; let now = new Date();
     DB.lots.forEach(lot => { if (lot.date) { let days=(now-new Date(lot.date))/(1000*3600*24); let soldPct=(soldOf(lot.id)/(lot.totalShirts||1))*100; if(days>30&&soldPct<30) alerts.push(`⚠️ ล็อต "${lot.name}" ผ่านมา ${Math.floor(days)} วัน ขาย ${soldPct.toFixed(0)}%`); } });
     let todayStr = now.toISOString().slice(0,10);
     DB.sales.forEach(s => { if (s.status !== 'paid' && s.status && s.dueDate && s.dueDate < todayStr) { let lot=DB.lots.find(l=>l.id===s.lotId); alerts.push(`⏰ ${s.customer||'-'} (${lot?.name||'?'}) เกินกำหนด (${s.dueDate})`); } });
@@ -471,7 +479,7 @@ function renderCharts() {
     if(catCtx){ if(catChart) catChart.destroy(); catChart = new Chart(catCtx, { type:'bar', data:{ labels:Object.keys(catProfit), datasets:[{ label:'กำไร', data:Object.values(catProfit), backgroundColor:'#7C3AED' }] } }); }
 }
 // ==============================================================
-// IG POSTS (แก้ไขโพสต์)
+// IG POSTS
 // ==============================================================
 function renderIgPosts() {
     let search = document.getElementById('searchIg')?.value.toLowerCase() || '';
@@ -487,58 +495,11 @@ function renderIgItem(p, status) {
     return `<div class="info-box"><div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;">${nameDisplay}<b>${p.title}</b></div><div style="font-size:12px;color:var(--text-secondary);">${p.content.substring(0,100)}...</div><div style="display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;"><button class="btn btn-sm btn-ghost" onclick="copyText('${p.id}')">📋 ก็อบ</button><button class="btn btn-sm btn-ghost" onclick="openEditIgPost('${p.id}')">✏️ แก้ไข</button>${status==='pending'?`<button class="btn btn-sm btn-primary" onclick="togglePostStatus('${p.id}')">✅ ลงแล้ว</button>`:`<button class="btn btn-sm btn-ghost" onclick="togglePostStatus('${p.id}')">🔄 ยังไม่ลง</button>`}<button class="btn btn-sm btn-danger" onclick="deleteIgPost('${p.id}')">🗑️</button></div></div>`;
 }
 function copyText(id) { let p=DB.igPosts.find(p=>p.id===id); if(p){ navigator.clipboard.writeText(p.content); showToast('📋 ก็อบแล้ว'); } }
-function openEditIgPost(id) {
-    let p = DB.igPosts.find(p => p.id === id);
-    if (!p) return;
-    document.getElementById('editIgPostId').value = id;
-    document.getElementById('editIgProductName').value = p.productName || '';
-    document.getElementById('editIgTitle').value = p.title || '';
-    document.getElementById('editIgContent').value = p.content || '';
-    document.getElementById('editIgBrand').value = p.brand || '';
-    document.getElementById('editIgSize').value = p.size || '';
-    document.getElementById('editIgChest').value = p.chest || '';
-    document.getElementById('editIgLength').value = p.length || '';
-    document.getElementById('editIgCondition').value = p.condition || '';
-    document.getElementById('editIgFlaws').value = p.flaws || '';
-    document.getElementById('editIgPrice').value = p.price || '';
-    document.getElementById('editIgImgUrl').value = p.imgUrl || '';
-    document.getElementById('editIgPostModal').classList.add('open');
-}
-async function saveEditIgPost() {
-    let id = document.getElementById('editIgPostId').value;
-    let p = DB.igPosts.find(p => p.id === id);
-    if (!p) return;
-    p.productName = document.getElementById('editIgProductName').value.trim();
-    p.title = document.getElementById('editIgTitle').value.trim() || 'โพสต์';
-    p.content = document.getElementById('editIgContent').value.trim();
-    p.brand = document.getElementById('editIgBrand').value.trim();
-    p.size = document.getElementById('editIgSize').value.trim();
-    p.chest = document.getElementById('editIgChest').value.trim();
-    p.length = document.getElementById('editIgLength').value.trim();
-    p.condition = document.getElementById('editIgCondition').value.trim();
-    p.flaws = document.getElementById('editIgFlaws').value.trim();
-    p.price = parseFloat(document.getElementById('editIgPrice').value) || 0;
-    p.imgUrl = document.getElementById('editIgImgUrl').value.trim();
-    saveLocal(); renderAll(); closeModal('editIgPostModal'); showToast('✅ แก้ไขโพสต์แล้ว');
-    if (firestore && currentRoom) { try { await firestore.collection('rooms').doc(currentRoom).collection('igPosts').doc(id).set(p); } catch(e) { showToast('⚠️ คลาวด์ล้มเหลว'); } }
-}
-async function togglePostStatus(id) {
-    let p = DB.igPosts.find(p => p.id === id);
-    if (!p) return; const old = p.status; p.status = p.status === 'pending' ? 'posted' : 'pending';
-    saveLocal(); renderAll();
-    if (firestore && currentRoom) { try { await firestore.collection('rooms').doc(currentRoom).collection('igPosts').doc(id).update({ status: p.status }); } catch(e) { p.status = old; saveLocal(); renderAll(); showToast('❌ เปลี่ยนไม่สำเร็จ'); } }
-}
-async function deleteIgPost(id) {
-    if (!confirm('ลบโพสต์?')) return;
-    const old = [...DB.igPosts]; DB.igPosts = DB.igPosts.filter(p => p.id !== id);
-    saveLocal(); renderAll();
-    if (firestore && currentRoom) { try { await firestore.collection('rooms').doc(currentRoom).collection('igPosts').doc(id).delete(); } catch(e) { DB.igPosts = old; saveLocal(); renderAll(); showToast('❌ ลบไม่สำเร็จ'); } }
-}
-function applyIgTemplate() {
-    let tmpl = document.getElementById('igTemplate').value;
-    let content = tmpl.replace(/{ชื่อ}/g,'').replace(/{แบรนด์}/g, document.getElementById('igBrand').value||'').replace(/{Size}/g, document.getElementById('igSize').value||'').replace(/{อก}/g, document.getElementById('igChest').value||'').replace(/{ยาว}/g, document.getElementById('igLength').value||'').replace(/{สภาพ}/g, document.getElementById('igCondition').value||'').replace(/{ตำหนิ}/g, document.getElementById('igFlaws').value||'').replace(/{Price}/g, document.getElementById('igPrice').value||'');
-    document.getElementById('igContent').value = content;
-}
+function openEditIgPost(id) { let p=DB.igPosts.find(p=>p.id===id); if(!p)return; document.getElementById('editIgPostId').value=id; document.getElementById('editIgProductName').value=p.productName||''; document.getElementById('editIgTitle').value=p.title||''; document.getElementById('editIgContent').value=p.content||''; document.getElementById('editIgBrand').value=p.brand||''; document.getElementById('editIgSize').value=p.size||''; document.getElementById('editIgChest').value=p.chest||''; document.getElementById('editIgLength').value=p.length||''; document.getElementById('editIgCondition').value=p.condition||''; document.getElementById('editIgFlaws').value=p.flaws||''; document.getElementById('editIgPrice').value=p.price||''; document.getElementById('editIgImgUrl').value=p.imgUrl||''; document.getElementById('editIgPostModal').classList.add('open'); }
+async function saveEditIgPost(){ let id=document.getElementById('editIgPostId').value; let p=DB.igPosts.find(p=>p.id===id); if(!p)return; p.productName=document.getElementById('editIgProductName').value.trim(); p.title=document.getElementById('editIgTitle').value.trim()||'โพสต์'; p.content=document.getElementById('editIgContent').value.trim(); p.brand=document.getElementById('editIgBrand').value.trim(); p.size=document.getElementById('editIgSize').value.trim(); p.chest=document.getElementById('editIgChest').value.trim(); p.length=document.getElementById('editIgLength').value.trim(); p.condition=document.getElementById('editIgCondition').value.trim(); p.flaws=document.getElementById('editIgFlaws').value.trim(); p.price=parseFloat(document.getElementById('editIgPrice').value)||0; p.imgUrl=document.getElementById('editIgImgUrl').value.trim(); saveLocal(); renderAll(); closeModal('editIgPostModal'); showToast('✅ แก้ไขโพสต์แล้ว'); if(firestore&&currentRoom) try{ await firestore.collection('rooms').doc(currentRoom).collection('igPosts').doc(id).set(p); } catch(e){} }
+async function togglePostStatus(id) { let p=DB.igPosts.find(p=>p.id===id); if(!p)return; const old=p.status; p.status=p.status==='pending'?'posted':'pending'; saveLocal(); renderAll(); if(firestore&&currentRoom) try{ await firestore.collection('rooms').doc(currentRoom).collection('igPosts').doc(id).update({status:p.status}); } catch(e){ p.status=old; saveLocal(); renderAll(); showToast('❌ เปลี่ยนไม่สำเร็จ'); } }
+async function deleteIgPost(id) { if(!confirm('ลบโพสต์?'))return; const old=[...DB.igPosts]; DB.igPosts=DB.igPosts.filter(p=>p.id!==id); saveLocal(); renderAll(); if(firestore&&currentRoom) try{ await firestore.collection('rooms').doc(currentRoom).collection('igPosts').doc(id).delete(); } catch(e){ DB.igPosts=old; saveLocal(); renderAll(); showToast('❌ ลบไม่สำเร็จ'); } }
+function applyIgTemplate() { let tmpl=document.getElementById('igTemplate').value; let content=tmpl.replace(/{ชื่อ}/g,'').replace(/{แบรนด์}/g,document.getElementById('igBrand').value||'').replace(/{Size}/g,document.getElementById('igSize').value||'').replace(/{อก}/g,document.getElementById('igChest').value||'').replace(/{ยาว}/g,document.getElementById('igLength').value||'').replace(/{สภาพ}/g,document.getElementById('igCondition').value||'').replace(/{ตำหนิ}/g,document.getElementById('igFlaws').value||'').replace(/{Price}/g,document.getElementById('igPrice').value||''); document.getElementById('igContent').value=content; }
 function resetIgTemplate() { document.getElementById('igTemplate').value = `แบรนด์ {แบรนด์}\nSize : {Size}\nอก : {อก} นิ้ว\nยาว : {ยาว} นิ้ว\nสภาพ : {สภาพ}\nตำหนิ : {ตำหนิ}\nPrice : {Price} บาท`; showToast('🔄 คืนค่าเทมเพลต'); }
 // ==============================================================
 // CRUD
@@ -548,22 +509,11 @@ async function addLot() {
     if(!name||!total){alert('ใส่ชื่อและจำนวน');return;} let cats=[...document.querySelectorAll('#shirtCats input:checked')].map(i=>i.value);
     let newLot={id:Date.now().toString(),name,totalShirts:total,cost:parseFloat(document.getElementById('lotCost').value)||0,ship:parseFloat(document.getElementById('lotShip').value)||0,pack:parseFloat(document.getElementById('lotPack').value)||0,weight:parseFloat(document.getElementById('lotWeight').value)||0,categories:cats,date:new Date().toISOString()};
     DB.lots.push(newLot); saveLocal(); renderAll(); clearLotForm();
-    if(firestore&&currentRoom) { try { await firestore.collection('rooms').doc(currentRoom).collection('lots').doc(newLot.id).set(newLot); if(notify.lot&&webhookUrl) sendDiscord(`📦 เพิ่มล็อต: ${name} (${total} ตัว)`); } catch(e){ showToast('⚠️ คลาวด์ล้มเหลว'); } }
-    await triggerGumloop({event:'new_lot',lot:newLot});
+    if(firestore&&currentRoom){ try{ await firestore.collection('rooms').doc(currentRoom).collection('lots').doc(newLot.id).set(newLot); if(notify.lot&&webhookUrl) sendDiscord(`📦 เพิ่มล็อต: ${name} (${total} ตัว)`); } catch(e){ showToast('⚠️ คลาวด์ล้มเหลว'); } }
 }
 function clearLotForm() { ['lotName','lotTotal','lotCost','lotShip','lotPack','lotWeight'].forEach(id=>document.getElementById(id).value=''); document.querySelectorAll('#shirtCats input').forEach(cb=>cb.checked=false); }
-async function deleteLot(lotId) {
-    if(!confirm('ลบล็อต?')) return;
-    const oldLots=[...DB.lots]; const oldSales=[...DB.sales];
-    DB.lots=DB.lots.filter(l=>l.id!==lotId); DB.sales=DB.sales.filter(s=>s.lotId!==lotId);
-    saveLocal(); renderAll();
-    if(firestore&&currentRoom){ try{ let batch=firestore.batch(); let snap=await firestore.collection('rooms').doc(currentRoom).collection('sales').where('lotId','==',lotId).get(); snap.forEach(d=>batch.delete(d.ref)); batch.delete(firestore.collection('rooms').doc(currentRoom).collection('lots').doc(lotId)); await batch.commit(); } catch(e){ DB.lots=oldLots; DB.sales=oldSales; saveLocal(); renderAll(); alert('ลบไม่สำเร็จ'); } }
-}
-function togglePaymentInputs() {
-    let status=document.getElementById('paymentStatus').value; let dep=document.getElementById('depositAmount'); let date=document.getElementById('paymentDueDate');
-    if(status==='paid'){dep.style.display='none'; date.style.display='none';} else if(status==='deposit'){dep.style.display='block'; date.style.display='block';} else if(status==='hold'){dep.style.display='none'; date.style.display='block';}
-    previewProfit();
-}
+async function deleteLot(lotId) { if(!confirm('ลบล็อต?'))return; const oldLots=[...DB.lots]; const oldSales=[...DB.sales]; DB.lots=DB.lots.filter(l=>l.id!==lotId); DB.sales=DB.sales.filter(s=>s.lotId!==lotId); saveLocal(); renderAll(); if(firestore&&currentRoom){ try{ let batch=firestore.batch(); let snap=await firestore.collection('rooms').doc(currentRoom).collection('sales').where('lotId','==',lotId).get(); snap.forEach(d=>batch.delete(d.ref)); batch.delete(firestore.collection('rooms').doc(currentRoom).collection('lots').doc(lotId)); await batch.commit(); } catch(e){ DB.lots=oldLots; DB.sales=oldSales; saveLocal(); renderAll(); alert('ลบไม่สำเร็จ'); } } }
+function togglePaymentInputs() { let status=document.getElementById('paymentStatus').value; let dep=document.getElementById('depositAmount'); let date=document.getElementById('paymentDueDate'); if(status==='paid'){dep.style.display='none'; date.style.display='none';} else if(status==='deposit'){dep.style.display='block'; date.style.display='block';} else if(status==='hold'){dep.style.display='none'; date.style.display='block';} previewProfit(); }
 async function addSale() {
     let lotId=document.getElementById('sellLot').value; let shirt=document.getElementById('sellShirt').value;
     let qty=parseInt(document.getElementById('sellQty').value)||1; let price=parseFloat(document.getElementById('sellPrice').value)||0;
@@ -573,33 +523,27 @@ async function addSale() {
     let newSale={id:Date.now().toString(),lotId,shirt,qty,price,date:new Date().toISOString(),customer,contact,details,status,depositAmount,dueDate};
     DB.sales.push(newSale); saveLocal(); renderAll(); clearSaleForm();
     if(firestore&&currentRoom){ try{ await firestore.collection('rooms').doc(currentRoom).collection('sales').doc(newSale.id).set(newSale); if(notify.sale&&webhookUrl) sendDiscord(`💰 ขาย: ${lot.name} ${shirt} x${qty} = ${fmt(qty*price)}`); } catch(e){ showToast('⚠️ คลาวด์ล้มเหลว'); } }
-    await triggerGumloop({event:'new_sale',sale:newSale,lot:lot});
 }
 function clearSaleForm() { document.getElementById('sellPrice').value=''; document.getElementById('customerName').value=''; document.getElementById('customerContact').value=''; document.getElementById('extraDetails').value=''; document.getElementById('sellQty').value='1'; document.getElementById('paymentStatus').value='paid'; document.getElementById('depositAmount').value=''; document.getElementById('paymentDueDate').value=''; togglePaymentInputs(); }
-async function deleteSale(saleId) { if(!confirm('ลบรายการขาย?')) return; const old=[...DB.sales]; DB.sales=DB.sales.filter(s=>s.id!==saleId); saveLocal(); renderAll(); if(firestore&&currentRoom){ try{ await firestore.collection('rooms').doc(currentRoom).collection('sales').doc(saleId).delete(); } catch(e){ DB.sales=old; saveLocal(); renderAll(); alert('ลบไม่สำเร็จ'); } } }
-async function completePayment(saleId) {
-    let sale=DB.sales.find(s=>s.id===saleId); if(!sale) return; let remaining=sale.qty*sale.price-(sale.depositAmount||0); if(!confirm(`รับชำระเพิ่ม ${fmt(remaining)}?`)) return; sale.status='paid'; sale.depositAmount=0; sale.dueDate=''; saveLocal(); renderAll(); showToast('💳 เสร็จสมบูรณ์'); let lot=DB.lots.find(l=>l.id===sale.lotId); if(notify.sale&&webhookUrl) sendDiscord(`💰 ชำระเต็มแล้ว: ${lot?.name} ${sale.shirt} x${sale.qty}`); if(firestore&&currentRoom) try{ await firestore.collection('rooms').doc(currentRoom).collection('sales').doc(saleId).set(sale); } catch(e){} }
+async function deleteSale(saleId) { if(!confirm('ลบรายการขาย?'))return; const old=[...DB.sales]; DB.sales=DB.sales.filter(s=>s.id!==saleId); saveLocal(); renderAll(); if(firestore&&currentRoom){ try{ await firestore.collection('rooms').doc(currentRoom).collection('sales').doc(saleId).delete(); } catch(e){ DB.sales=old; saveLocal(); renderAll(); alert('ลบไม่สำเร็จ'); } } }
+async function completePayment(saleId) { let sale=DB.sales.find(s=>s.id===saleId); if(!sale)return; let remaining=sale.qty*sale.price-(sale.depositAmount||0); if(!confirm(`รับชำระเพิ่ม ${fmt(remaining)}?`))return; sale.status='paid'; sale.depositAmount=0; sale.dueDate=''; saveLocal(); renderAll(); showToast('💳 เสร็จสมบูรณ์'); let lot=DB.lots.find(l=>l.id===sale.lotId); if(notify.sale&&webhookUrl) sendDiscord(`💰 ชำระเต็มแล้ว: ${lot?.name} ${sale.shirt} x${sale.qty}`); if(firestore&&currentRoom) try{ await firestore.collection('rooms').doc(currentRoom).collection('sales').doc(saleId).set(sale); } catch(e){} }
 async function addCategory(){ let v=document.getElementById('newCat').value.trim(); if(!v||DB.categories.includes(v))return; if(DB.categories.length>=30){alert('เกิน 30');return;} DB.categories.push(v); saveLocal(); renderAll(); if(firestore&&currentRoom) try{ await firestore.collection('rooms').doc(currentRoom).collection('meta').doc('categories').set({list:DB.categories}); } catch(e){} document.getElementById('newCat').value=''; }
 async function removeCat(idx){ DB.categories.splice(idx,1); saveLocal(); renderAll(); if(firestore&&currentRoom) try{ await firestore.collection('rooms').doc(currentRoom).collection('meta').doc('categories').set({list:DB.categories}); } catch(e){} }
-async function resetCategories(){ if(!confirm('รีเซ็ต?')) return; DB.categories=[...DEFAULT_CATS]; saveLocal(); renderAll(); if(firestore&&currentRoom) try{ await firestore.collection('rooms').doc(currentRoom).collection('meta').doc('categories').set({list:DB.categories}); } catch(e){} }
+async function resetCategories(){ if(!confirm('รีเซ็ต?'))return; DB.categories=[...DEFAULT_CATS]; saveLocal(); renderAll(); if(firestore&&currentRoom) try{ await firestore.collection('rooms').doc(currentRoom).collection('meta').doc('categories').set({list:DB.categories}); } catch(e){} }
 async function addIgPost() {
     let productName=document.getElementById('igProductName').value.trim(); let title=document.getElementById('igTitle').value.trim()||productName||'โพสต์';
     let content=document.getElementById('igContent').value.trim(); if(!content){alert('สร้างข้อความก่อน');return;}
     let newPost={id:Date.now().toString(),title,content,status:'pending',date:new Date().toISOString(),productName:productName||title,brand:document.getElementById('igBrand').value.trim(),size:document.getElementById('igSize').value.trim(),chest:document.getElementById('igChest').value.trim(),length:document.getElementById('igLength').value.trim(),condition:document.getElementById('igCondition').value.trim(),flaws:document.getElementById('igFlaws').value.trim(),price:parseFloat(document.getElementById('igPrice').value)||0,imgUrl:document.getElementById('igImgUrl').value.trim()};
-    DB.igPosts.push(newPost); saveLocal(); renderAll();
-    if(firestore&&currentRoom) try{ await firestore.collection('rooms').doc(currentRoom).collection('igPosts').doc(newPost.id).set(newPost); } catch(e){}
-    document.querySelectorAll('#igProductName, #igTitle, #igContent, #igBrand, #igSize, #igChest, #igLength, #igCondition, #igFlaws, #igPrice, #igImgUrl').forEach(el=>el.value='');
-    showToast('✅ บันทึกโพสต์');
-}
+    DB.igPosts.push(newPost); saveLocal(); renderAll(); if(firestore&&currentRoom) try{ await firestore.collection('rooms').doc(currentRoom).collection('igPosts').doc(newPost.id).set(newPost); } catch(e){} document.querySelectorAll('#igProductName, #igTitle, #igContent, #igBrand, #igSize, #igChest, #igLength, #igCondition, #igFlaws, #igPrice, #igImgUrl').forEach(el=>el.value=''); showToast('✅ บันทึกโพสต์'); }
 // ==============================================================
-// EDIT MODALS
+// EDIT MODALS (Lot, Sale)
 // ==============================================================
 function openEditLot(lotId){ let lot=DB.lots.find(l=>l.id===lotId); if(!lot)return; document.getElementById('editLotId').value=lotId; document.getElementById('editLotName').value=lot.name; document.getElementById('editLotTotal').value=lot.totalShirts; document.getElementById('editLotCost').value=lot.cost; document.getElementById('editLotShip').value=lot.ship; document.getElementById('editLotPack').value=lot.pack; document.getElementById('editLotWeight').value=lot.weight||''; document.getElementById('editLotModal').classList.add('open'); }
 async function saveEditLot(){ let id=document.getElementById('editLotId').value; let lot=DB.lots.find(l=>l.id===id); if(!lot)return; lot.name=document.getElementById('editLotName').value.trim(); lot.totalShirts=parseInt(document.getElementById('editLotTotal').value)||0; lot.cost=parseFloat(document.getElementById('editLotCost').value)||0; lot.ship=parseFloat(document.getElementById('editLotShip').value)||0; lot.pack=parseFloat(document.getElementById('editLotPack').value)||0; lot.weight=parseFloat(document.getElementById('editLotWeight').value)||0; saveLocal(); renderAll(); closeModal('editLotModal'); showToast('✅ แก้ไขล็อต'); if(firestore&&currentRoom) try{ await firestore.collection('rooms').doc(currentRoom).collection('lots').doc(id).set(lot); } catch(e){} }
 function openEditSale(saleId){ let sale=DB.sales.find(s=>s.id===saleId); if(!sale)return; document.getElementById('editSaleId').value=saleId; document.getElementById('editSaleQty').value=sale.qty; document.getElementById('editSalePrice').value=sale.price; document.getElementById('editSaleCustomer').value=sale.customer||''; document.getElementById('editSaleContact').value=sale.contact||''; document.getElementById('editSaleDetails').value=sale.details||''; document.getElementById('editSaleStatus').value=sale.status||'paid'; document.getElementById('editSaleDeposit').value=sale.depositAmount||''; document.getElementById('editSaleDueDate').value=sale.dueDate||''; document.getElementById('editSaleModal').classList.add('open'); }
 async function saveEditSale(){ let id=document.getElementById('editSaleId').value; let sale=DB.sales.find(s=>s.id===id); if(!sale)return; sale.qty=parseInt(document.getElementById('editSaleQty').value)||1; sale.price=parseFloat(document.getElementById('editSalePrice').value)||0; sale.customer=document.getElementById('editSaleCustomer').value; sale.contact=document.getElementById('editSaleContact').value; sale.details=document.getElementById('editSaleDetails').value; sale.status=document.getElementById('editSaleStatus').value; sale.depositAmount=sale.status==='deposit'?parseFloat(document.getElementById('editSaleDeposit').value)||0:0; sale.dueDate=sale.status!=='paid'?document.getElementById('editSaleDueDate').value||'':''; saveLocal(); renderAll(); closeModal('editSaleModal'); showToast('✅ แก้ไขรายการขาย'); if(firestore&&currentRoom) try{ await firestore.collection('rooms').doc(currentRoom).collection('sales').doc(id).set(sale); } catch(e){} }
 // ==============================================================
-// CALENDAR / SCHEDULE
+// CALENDAR (พร้อม Reminder)
 // ==============================================================
 function renderSchedules() {
     let list = document.getElementById('scheduleList');
@@ -611,6 +555,7 @@ function renderSchedules() {
     let html = sorted.map(s => {
         let isPast = (s.date + 'T' + s.time) < new Date().toISOString().slice(0,16);
         let typeLabel = s.type === 'live' ? '🔴 ไลฟ์' : '📸 ลงเสื้อ';
+        let reminderText = s.reminderMinutes ? `⏰ แจ้งล่วงหน้า ${s.reminderMinutes} นาที` : '⏰ ไม่แจ้งล่วงหน้า';
         let notifiedBadge = s.notified ? '✅ แจ้งแล้ว' : '⏳ รอแจ้ง';
         return `<div class="event-item ${s.notified ? 'event-notified' : ''}">
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
@@ -619,6 +564,7 @@ function renderSchedules() {
             </div>
             <div style="font-size:13px;color:var(--text-secondary);margin:4px 0;">${s.note || ''}</div>
             <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                <span class="badge">${reminderText}</span>
                 <span class="badge">${notifiedBadge}</span>
                 ${isPast && !s.notified ? '<span class="badge" style="border-color:var(--hot-pink);color:var(--hot-pink);">⏰ ผ่านเวลาแล้ว</span>' : ''}
                 <button class="btn btn-sm btn-ghost" onclick="deleteSchedule('${s.id}')">🗑️ ลบ</button>
@@ -633,8 +579,9 @@ function addSchedule() {
     let date = document.getElementById('eventDate').value;
     let time = document.getElementById('eventTime').value;
     let note = document.getElementById('eventNote').value.trim();
+    let reminderMinutes = parseInt(document.getElementById('eventReminder').value) || 0;
     if (!title || !date || !time) { alert('กรุณากรอกชื่อ วันที่ และเวลา'); return; }
-    let newEvent = { id: Date.now().toString(), title, type, date, time, note, notified: false };
+    let newEvent = { id: Date.now().toString(), title, type, date, time, note, reminderMinutes, notified: false };
     DB.schedules.push(newEvent);
     saveLocal(); renderSchedules();
     if (firestore && currentRoom) {
@@ -651,6 +598,7 @@ async function deleteSchedule(id) {
         try { await firestore.collection('rooms').doc(currentRoom).collection('schedules').doc(id).delete(); } catch(e){}
     }
 }
+// ฟังก์ชันตรวจสอบและแจ้งเตือน (ปรับให้ใช้ Reminder)
 function checkSchedules() {
     if (!webhookUrl || !notify.schedule) return;
     let now = new Date();
@@ -658,9 +606,12 @@ function checkSchedules() {
     DB.schedules.forEach(s => {
         if (s.notified) return;
         let eventTime = new Date(s.date + 'T' + s.time);
-        // ถ้า eventTime <= now และยังไม่แจ้ง
-        if (eventTime <= now) {
-            let msg = `📢 **แจ้งเตือนกิจกรรม**\n📌 ${s.title}\n🕒 ${s.date} ${s.time}\n📋 ${s.type === 'live' ? '🔴 ไลฟ์' : '📸 ลงเสื้อ'}\n📝 ${s.note || 'ไม่มีหมายเหตุ'}`;
+        let reminderMs = (s.reminderMinutes || 0) * 60 * 1000;
+        let notifyTime = new Date(eventTime.getTime() - reminderMs);
+        // ถ้าเวลาที่ต้องแจ้ง <= now และยังไม่แจ้ง
+        if (notifyTime <= now) {
+            let timeText = s.reminderMinutes ? `${s.reminderMinutes} นาทีก่อน` : 'ตามเวลาจริง';
+            let msg = `📢 **แจ้งเตือนกิจกรรม**\n📌 ${s.title}\n🕒 ${s.date} ${s.time} (${timeText})\n📋 ${s.type === 'live' ? '🔴 ไลฟ์' : '📸 ลงเสื้อ'}\n📝 ${s.note || 'ไม่มีหมายเหตุ'}`;
             sendDiscord(msg);
             s.notified = true;
             changed = true;
@@ -679,24 +630,18 @@ function checkSchedules() {
     }
 }
 // ==============================================================
-// IMPORT CSV (ใหม่)
+// IMPORT CSV
 // ==============================================================
 function importCSV(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+    const file = event.target.files[0]; if (!file) return;
     const reader = new FileReader();
     reader.onload = function(e) {
-        const text = e.target.result;
-        const lines = text.split('\n').filter(line => line.trim() !== '');
+        const text = e.target.result; const lines = text.split('\n').filter(line => line.trim() !== '');
         if (lines.length < 2) { alert('CSV ว่างเปล่า'); return; }
         const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
         const expected = ['date','lot','category','qty','price','customer','contact','details','status','deposit','duedate'];
-        // map header index
         let idxMap = {};
-        headers.forEach((h, i) => {
-            let found = expected.find(e => e === h);
-            if (found) idxMap[found] = i;
-        });
+        headers.forEach((h, i) => { let found = expected.find(e => e === h); if (found) idxMap[found] = i; });
         if (!idxMap.date && !idxMap.lot) { alert('ต้องมีคอลัมน์ Date หรือ Lot'); return; }
         let added = 0;
         for (let i=1; i<lines.length; i++) {
@@ -705,7 +650,6 @@ function importCSV(event) {
             let lotName = get('lot');
             let lot = DB.lots.find(l => l.name === lotName);
             if (!lot && lotName) {
-                // ถ้าไม่มีล็อต ให้สร้างล็อตใหม่แบบพื้นฐาน
                 lot = { id: Date.now().toString() + Math.random().toString(36).substring(2,6), name: lotName, totalShirts: 0, cost: 0, ship: 0, pack: 0, weight: 0, categories: [], date: new Date().toISOString() };
                 DB.lots.push(lot);
             }
@@ -731,7 +675,6 @@ function importCSV(event) {
         }
         saveLocal(); renderAll(); showToast(`✅ นำเข้า CSV สำเร็จ (${added} รายการ)`);
         if (firestore && currentRoom) {
-            // async upload all
             DB.sales.forEach(s => firestore.collection('rooms').doc(currentRoom).collection('sales').doc(s.id).set(s).catch(()=>{}));
             DB.lots.forEach(l => firestore.collection('rooms').doc(currentRoom).collection('lots').doc(l.id).set(l).catch(()=>{}));
         }
@@ -767,17 +710,15 @@ function joinRoomConfirm(){ let room=document.getElementById('roomIdInput').valu
 function joinRoom(room) {
     if(!firestore){alert('Firebase ยังไม่พร้อม');return;} currentRoom=room; localStorage.setItem('hh_room',room);
     document.getElementById('roomStatus').innerHTML=`<span class="online-dot"></span>กลุ่ม: <b>${room}</b>`;
-    if(unsubLots)unsubLots(); if(unsubSales)unsubSales(); if(unsubIg)unsubIg(); if(unsubCats)unsubCats();
+    if(unsubLots)unsubLots(); if(unsubSales)unsubSales(); if(unsubIg)unsubIg(); if(unsubCats)unsubCats(); if(unsubSchedules)unsubSchedules();
     let roomRef=firestore.collection('rooms').doc(room);
     unsubLots=roomRef.collection('lots').onSnapshot(snap=>{ if(isSyncing)return; DB.lots=snap.docs.map(d=>d.data()); hasCloudData=hasCloudData||DB.lots.length>0; saveLocal(); renderAll(); });
     unsubSales=roomRef.collection('sales').onSnapshot(snap=>{ if(isSyncing)return; DB.sales=snap.docs.map(d=>d.data()); hasCloudData=hasCloudData||DB.sales.length>0; saveLocal(); renderAll(); });
     unsubIg=roomRef.collection('igPosts').onSnapshot(snap=>{ if(isSyncing)return; DB.igPosts=snap.docs.map(d=>d.data()); hasCloudData=hasCloudData||DB.igPosts.length>0; saveLocal(); renderAll(); });
     unsubCats=roomRef.collection('meta').doc('categories').onSnapshot(snap=>{ if(isSyncing)return; let data=snap.data(); if(data?.list){ DB.categories=data.list; saveLocal(); renderAll(); } });
-    // schedules sync
-    unsubSchedules = roomRef.collection('schedules').onSnapshot(snap => { if(isSyncing) return; DB.schedules = snap.docs.map(d=>d.data()); saveLocal(); renderSchedules(); });
+    unsubSchedules=roomRef.collection('schedules').onSnapshot(snap=>{ if(isSyncing)return; DB.schedules=snap.docs.map(d=>d.data()); saveLocal(); renderSchedules(); });
     showToast(`✅ เข้ากลุ่ม ${room}`);
 }
-let unsubSchedules = null;
 async function migrateLocalToCloud() {
     if(!firestore||!currentRoom)return; if(!confirm('อัปโหลด?'))return; setLoading('migrateBtn',true); isSyncing=true;
     try{ let roomRef=firestore.collection('rooms').doc(currentRoom); for(let lot of DB.lots) await roomRef.collection('lots').doc(lot.id).set(lot); for(let sale of DB.sales) await roomRef.collection('sales').doc(sale.id).set(sale); for(let post of DB.igPosts) await roomRef.collection('igPosts').doc(post.id).set(post); for(let s of DB.schedules) await roomRef.collection('schedules').doc(s.id).set(s); if(DB.categories.length) await roomRef.collection('meta').doc('categories').set({list:DB.categories}); hasCloudData=true; showToast('✅ อัปโหลดเสร็จ'); } catch(e){ showToast('❌ ล้มเหลว'); } isSyncing=false; setLoading('migrateBtn',false); renderAll();
@@ -811,7 +752,7 @@ async function triggerGumloop(data, silent=false){ let {userId,savedItemId,apiKe
 // ==============================================================
 function exportCloudData(){ let a=document.createElement('a'); a.href='data:application/json,'+encodeURIComponent(JSON.stringify(DB,null,2)); a.download=`hypehunt-backup-${new Date().toISOString().slice(0,10)}.json`; a.click(); showToast('📥 Export JSON'); }
 function exportCSV(){ let rows=[['Date','Lot','Category','Qty','Price','Customer','Contact','Details','Status','Deposit','DueDate']]; DB.sales.forEach(s=>{ let lot=DB.lots.find(l=>l.id===s.lotId); rows.push([s.date?.slice(0,10)||'', lot?.name||'', s.shirt||'', s.qty, s.price, s.customer||'', s.contact||'', s.details||'', s.status||'paid', s.depositAmount||'', s.dueDate||'']); }); let csv=rows.map(r=>r.map(v=>`"${v}"`).join(',')).join('\n'); let a=document.createElement('a'); a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv); a.download=`hypehunt-sales-${new Date().toISOString().slice(0,10)}.csv`; a.click(); showToast('📊 Export CSV'); }
-function exportShopHTML(){ let firebaseRaw=localStorage.getItem('hh_firebase'); let room=localStorage.getItem('hh_room'); if(!firebaseRaw||!room){alert('ตั้งค่า Firebase และเข้ากลุ่มก่อน');return;} let config=JSON.parse(firebaseRaw); let shopCode=`<!DOCTYPE html>... (ใช้โค้ดเดิม)`; // 省略เพื่อความยาว แต่เก็บไว้
+function exportShopHTML(){ let firebaseRaw=localStorage.getItem('hh_firebase'); let room=localStorage.getItem('hh_room'); if(!firebaseRaw||!room){alert('ตั้งค่า Firebase และเข้ากลุ่มก่อน');return;} let config=JSON.parse(firebaseRaw); let shopCode = `<!DOCTYPE html><html><head><title>HYPEHUNT SHOP</title><script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"><\/script><script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"><\/script><style>body{background:#0A0A0F;color:#F0EBF8;font-family:sans-serif;padding:20px;max-width:800px;margin:auto;}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;}.card{background:#1A1424;border-radius:12px;padding:12px;border:1px solid #2A2038;}</style></head><body><div id="app"><h1>HYPEHUNT SHOP</h1><div class="grid" id="grid"></div></div><script>const config=${JSON.stringify(config)};firebase.initializeApp(config);const db=firebase.firestore();const roomId="${room}";db.collection('rooms').doc(roomId).collection('igPosts').where('status','==','pending').onSnapshot(snap=>{let grid=document.getElementById('grid');if(snap.empty){grid.innerHTML='<p>ยังไม่มีสินค้า</p>';return;}let html='';snap.docs.forEach(doc=>{let p=doc.data();html+='<div class="card"><h3>'+(p.productName||p.title||'สินค้า')+'</h3><p>'+(p.brand||'')+' '+(p.size||'')+'</p><p>'+p.price+' ฿</p></div>';});grid.innerHTML=html;});<\/script></body></html>`;
     let a=document.createElement('a'); a.href='data:text/html;charset=utf-8,'+encodeURIComponent(shopCode); a.download=`shop-${room}.html`; a.click(); showToast('🔗 ส่งออก shop.html'); }
 // ==============================================================
 // QR
@@ -820,7 +761,6 @@ function showQR(lotId){ let lot=DB.lots.find(l=>l.id===lotId); if(!lot)return; l
 function downloadQR(){ let canvas=document.getElementById('qrCanvas'); let link=document.createElement('a'); link.download='hypehunt-qr.png'; link.href=canvas.toDataURL(); link.click(); }
 function openScanner(){ let readerDiv=document.getElementById('qrReader'); if(readerDiv.style.display==='none'){ readerDiv.style.display='block'; if(typeof Html5Qrcode!=='undefined'){ qrScannerInstance=new Html5Qrcode('qrReader'); qrScannerInstance.start({facingMode:'environment'},{fps:10,qrbox:200},(text)=>{ try{ let data=JSON.parse(text); if(data.lotId){ document.getElementById('sellLot').value=data.lotId; updateShirtSelect(); showToast('📷 สแกนสำเร็จ'); } } catch(e){ showToast('⚠️ QR ผิด'); } qrScannerInstance.stop(); readerDiv.style.display='none'; qrScannerInstance=null; }).catch(()=>{ showToast('⚠️ เปิดกล้องไม่ได้'); readerDiv.style.display='none'; qrScannerInstance=null; }); } } else { stopScanner(); readerDiv.style.display='none'; } }
 async function clearAllCloud(){ if(!confirm('ล้างข้อมูลทั้งหมด?'))return; DB={lots:[],sales:[],categories:[...DEFAULT_CATS],igPosts:[],schedules:[]}; saveLocal(); renderAll(); if(firestore&&currentRoom){ try{ let roomRef=firestore.collection('rooms').doc(currentRoom); for(let col of ['lots','sales','igPosts','schedules']){ let snap=await roomRef.collection(col).get(); let batch=firestore.batch(); snap.forEach(d=>batch.delete(d.ref)); await batch.commit(); } await roomRef.collection('meta').doc('categories').set({list:DEFAULT_CATS}); } catch(e){} } showToast('🗑️ ล้างข้อมูล'); }
-function setLoading(btnId, loading) { let btn=document.getElementById(btnId); if(!btn)return; if(loading){ btn.disabled=true; btn.dataset.original=btn.innerHTML; btn.innerHTML='<span class="spinner"></span> กำลัง...'; } else { btn.disabled=false; btn.innerHTML=btn.dataset.original||btn.innerText; } }
 window.addEventListener('online', ()=>{ document.getElementById('onlineStatus').innerHTML='<span class="online-dot"></span>Online'; });
 window.addEventListener('offline', ()=>{ document.getElementById('onlineStatus').innerHTML='<span class="online-dot offline-dot"></span>Offline'; });
 window.addEventListener('DOMContentLoaded', ()=>{
